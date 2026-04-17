@@ -1,0 +1,21 @@
+{
+  "id": "sql-monthly-sales",
+  "title": "月次売上集計クエリ",
+  "type": "sql",
+  "difficulty": "medium",
+  "language": "sql",
+  "tags": ["sql", "aggregation"],
+  "description": "orders テーブルから月ごとの売上合計を算出するSQLを完成させてください。",
+  "starterFiles": [
+    { "path": "starter/query.sql", "readonly": false },
+    { "path": "tests/visible/expected.csv", "readonly": true }
+  ],
+  "visibleTests": ["tests/visible/expected.csv"],
+  "hiddenTests": ["tests/hidden/assertion.md"],
+  "runner": {
+    "image": "python:3.12-alpine",
+    "entrypoint": "python run_sql_tests.py",
+    "timeoutMs": 5000,
+    "memoryMb": 256
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "id": "ts-feature-user-display",
+  "title": "ユーザー表示名の機能追加",
+  "type": "feature",
+  "difficulty": "easy",
+  "language": "typescript",
+  "tags": ["feature", "string"],
+  "description": "User型に対して表示名を返すformatDisplayName関数を実装してください。",
+  "starterFiles": [
+    { "path": "starter/user.ts", "readonly": false },
+    { "path": "tests/visible/user.visible.test.ts", "readonly": true }
+  ],
+  "visibleTests": ["tests/visible/user.visible.test.ts"],
+  "hiddenTests": ["tests/hidden/user.hidden.test.ts"],
+  "runner": {
+    "image": "node:22-alpine",
+    "entrypoint": "npm test",
+    "timeoutMs": 5000,
+    "memoryMb": 256
+  }
+}

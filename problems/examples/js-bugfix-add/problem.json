@@ -1,0 +1,21 @@
+{
+  "id": "js-bugfix-add",
+  "title": "合計関数のバグ修正",
+  "type": "bugfix",
+  "difficulty": "easy",
+  "language": "javascript",
+  "tags": ["array", "bugfix"],
+  "description": "配列の合計を返す関数にバグがあります。テストが通るように修正してください。",
+  "starterFiles": [
+    { "path": "starter/sum.js", "readonly": false },
+    { "path": "tests/visible/sum.visible.test.js", "readonly": true }
+  ],
+  "visibleTests": ["tests/visible/sum.visible.test.js"],
+  "hiddenTests": ["tests/hidden/sum.hidden.test.js"],
+  "runner": {
+    "image": "node:22-alpine",
+    "entrypoint": "npm test -- --runInBand",
+    "timeoutMs": 5000,
+    "memoryMb": 256
+  }
+}
