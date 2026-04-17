@@ -1,0 +1,6 @@
+# 最低限の初期設定。組織実態に合わせて更新すること。
+* @your-org/ai-code-dojo-maintainers
+
+docs/* @your-org/ai-code-dojo-pm
+problems/* @your-org/ai-code-dojo-education
+.github/workflows/* @your-org/ai-code-dojo-platform
