@@ -1,21 +1,44 @@
 {
-  "id": "sql-monthly-sales",
-  "title": "月次売上集計クエリ",
-  "type": "sql",
-  "difficulty": "medium",
-  "language": "sql",
-  "tags": ["sql", "aggregation"],
-  "description": "orders テーブルから月ごとの売上合計を算出するSQLを完成させてください。",
-  "starterFiles": [
+  "metadata": {
+    "title": "月次売上集計クエリ",
+    "slug": "sql-monthly-sales",
+    "difficulty": "medium",
+    "category": "sql",
+    "supportedLanguages": ["sql"],
+    "framework": "sql",
+    "tags": ["sql", "aggregation", "group-by"]
+  },
+  "statement": {
+    "background": "分析チームが月次売上レポートを運用しており、既存SQLの改修が必要です。",
+    "issue": "orders テーブルから月次売上を集計するクエリが未完成で、期待フォーマットを満たしていません。",
+    "acceptanceCriteria": [
+      "月単位で売上合計を集計する",
+      "month カラム昇順で結果を返す",
+      "NULL 値を除外した合計を返す"
+    ],
+    "outOfScope": ["時区間のタイムゾーン補正", "複数通貨換算"]
+  },
+  "learningPoints": [
+    "GROUP BY と ORDER BY の基本運用",
+    "期待出力を満たすSQLレビュー観点の習得"
+  ],
+  "starterCode": [
     { "path": "starter/query.sql", "readonly": false },
     { "path": "tests/visible/expected.csv", "readonly": true }
   ],
   "visibleTests": ["tests/visible/expected.csv"],
   "hiddenTests": ["tests/hidden/assertion.md"],
-  "runner": {
-    "image": "python:3.12-alpine",
-    "entrypoint": "python run_sql_tests.py",
-    "timeoutMs": 5000,
-    "memoryMb": 256
+  "runnerConfig": {
+    "buildCommand": "echo 'sql problem has no build step'",
+    "testCommand": "python run_sql_tests.py",
+    "runCommand": "sqlite3 :memory: < starter/query.sql",
+    "timeoutSeconds": 5,
+    "networkAccess": "disabled"
+  },
+  "reviewConfig": {
+    "prTitleRule": "feat(problem): sql-monthly-sales クエリ改善",
+    "prBodyRule": "SQL方針・期待結果との差分・検証結果を日本語で記載する",
+    "commentStyle": "business",
+    "language": "ja"
   }
 }
