@@ -1,21 +1,44 @@
 {
-  "id": "js-bugfix-add",
-  "title": "合計関数のバグ修正",
-  "type": "bugfix",
-  "difficulty": "easy",
-  "language": "javascript",
-  "tags": ["array", "bugfix"],
-  "description": "配列の合計を返す関数にバグがあります。テストが通るように修正してください。",
-  "starterFiles": [
+  "metadata": {
+    "title": "合計関数のバグ修正",
+    "slug": "js-bugfix-add",
+    "difficulty": "easy",
+    "category": "bugfix",
+    "supportedLanguages": ["javascript"],
+    "framework": "vanilla",
+    "tags": ["array", "bugfix", "regression"]
+  },
+  "statement": {
+    "background": "既存の受注集計画面で合計値が一致しない不具合が報告されています。",
+    "issue": "sum関数が初期値と加算ロジックを誤って扱っており、特定ケースで値がずれます。",
+    "acceptanceCriteria": [
+      "空配列で 0 を返す",
+      "正負の整数配列を正しく合計できる",
+      "既存の関数シグネチャを変更しない"
+    ],
+    "outOfScope": ["BigInt への対応", "非数値要素のバリデーション追加"]
+  },
+  "learningPoints": [
+    "既存コードの不具合箇所を最小差分で修正する",
+    "visible test を起点に回帰を防ぐ"
+  ],
+  "starterCode": [
     { "path": "starter/sum.js", "readonly": false },
     { "path": "tests/visible/sum.visible.test.js", "readonly": true }
   ],
   "visibleTests": ["tests/visible/sum.visible.test.js"],
   "hiddenTests": ["tests/hidden/sum.hidden.test.js"],
-  "runner": {
-    "image": "node:22-alpine",
-    "entrypoint": "npm test -- --runInBand",
-    "timeoutMs": 5000,
-    "memoryMb": 256
+  "runnerConfig": {
+    "buildCommand": "echo 'no build required'",
+    "testCommand": "node --test tests/visible/sum.visible.test.js tests/hidden/sum.hidden.test.js",
+    "runCommand": "node starter/sum.js",
+    "timeoutSeconds": 5,
+    "networkAccess": "disabled"
+  },
+  "reviewConfig": {
+    "prTitleRule": "fix(problem): js-bugfix-add の不具合修正",
+    "prBodyRule": "再現手順・原因・修正内容・確認結果を日本語で記載する",
+    "commentStyle": "business",
+    "language": "ja"
   }
 }

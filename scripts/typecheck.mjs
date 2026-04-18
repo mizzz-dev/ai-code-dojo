@@ -7,8 +7,8 @@ const targets = [
 ];
 
 const mustContain = {
-  "packages/problem-schema/src/index.ts": ["export interface ProblemDefinition", "SupportedLanguages"],
-  "packages/runner-sdk/src/index.ts": ["export interface RunnerClient", "export interface RunRequest"],
+  "packages/problem-schema/src/index.ts": ["export interface ProblemDefinition", "SupportedLanguages", "runnerConfig", "reviewConfig"],
+  "packages/runner-sdk/src/index.ts": ["export interface RunnerClient", "export interface RunRequest", "export interface RunnerAdapter"],
   "packages/config/src/index.ts": ["export interface AppConfig", "export const loadConfig"]
 };
 

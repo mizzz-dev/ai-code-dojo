@@ -3,21 +3,37 @@ export const SupportedLanguages = ["javascript", "typescript", "python", "sql", 
 export type SupportedLanguage = (typeof SupportedLanguages)[number];
 
 export interface ProblemDefinition {
-  id: string;
-  title: string;
-  type: "bugfix" | "feature" | "sql";
-  difficulty: "easy" | "medium" | "hard";
-  language: SupportedLanguage;
-  tags: string[];
-  description: string;
-  starterFiles: Array<{ path: string; readonly: boolean }>;
+  metadata: {
+    title: string;
+    slug: string;
+    difficulty: "easy" | "medium" | "hard";
+    category: "bugfix" | "feature" | "sql" | "refactor";
+    supportedLanguages: SupportedLanguage[];
+    framework: "vanilla" | "react" | "node" | "fastapi" | "sql";
+    tags: string[];
+  };
+  statement: {
+    background: string;
+    issue: string;
+    acceptanceCriteria: string[];
+    outOfScope: string[];
+  };
+  learningPoints: string[];
+  starterCode: Array<{ path: string; readonly: boolean }>;
   visibleTests: string[];
   hiddenTests: string[];
-  runner: {
-    image: string;
-    entrypoint: string;
-    timeoutMs: number;
-    memoryMb: number;
+  runnerConfig: {
+    buildCommand: string;
+    testCommand: string;
+    runCommand: string;
+    timeoutSeconds: number;
+    networkAccess: "disabled" | "restricted" | "enabled";
+  };
+  reviewConfig: {
+    prTitleRule: string;
+    prBodyRule: string;
+    commentStyle: "business" | "friendly" | "strict";
+    language: "ja" | "en";
   };
 }
 
@@ -26,31 +42,62 @@ export const problemDefinitionSchema = {
   type: "object",
   additionalProperties: false,
   required: [
-    "id",
-    "title",
-    "type",
-    "difficulty",
-    "language",
-    "tags",
-    "description",
-    "starterFiles",
+    "metadata",
+    "statement",
+    "learningPoints",
+    "starterCode",
     "visibleTests",
     "hiddenTests",
-    "runner"
+    "runnerConfig",
+    "reviewConfig"
   ],
   properties: {
-    id: { type: "string", pattern: "^[a-z0-9-]+$" },
-    title: { type: "string", minLength: 1 },
-    type: { enum: ["bugfix", "feature", "sql"] },
-    difficulty: { enum: ["easy", "medium", "hard"] },
-    language: { enum: [...SupportedLanguages] },
-    tags: {
-      type: "array",
-      items: { type: "string", minLength: 1 },
-      minItems: 1
+    metadata: {
+      type: "object",
+      additionalProperties: false,
+      required: ["title", "slug", "difficulty", "category", "supportedLanguages", "framework", "tags"],
+      properties: {
+        title: { type: "string", minLength: 1 },
+        slug: { type: "string", pattern: "^[a-z0-9-]+$" },
+        difficulty: { enum: ["easy", "medium", "hard"] },
+        category: { enum: ["bugfix", "feature", "sql", "refactor"] },
+        supportedLanguages: {
+          type: "array",
+          minItems: 1,
+          items: { enum: [...SupportedLanguages] }
+        },
+        framework: { enum: ["vanilla", "react", "node", "fastapi", "sql"] },
+        tags: {
+          type: "array",
+          minItems: 1,
+          items: { type: "string", minLength: 1 }
+        }
+      }
     },
-    description: { type: "string", minLength: 10 },
-    starterFiles: {
+    statement: {
+      type: "object",
+      additionalProperties: false,
+      required: ["background", "issue", "acceptanceCriteria", "outOfScope"],
+      properties: {
+        background: { type: "string", minLength: 10 },
+        issue: { type: "string", minLength: 10 },
+        acceptanceCriteria: {
+          type: "array",
+          minItems: 1,
+          items: { type: "string", minLength: 3 }
+        },
+        outOfScope: {
+          type: "array",
+          items: { type: "string", minLength: 3 }
+        }
+      }
+    },
+    learningPoints: {
+      type: "array",
+      minItems: 1,
+      items: { type: "string", minLength: 3 }
+    },
+    starterCode: {
       type: "array",
       minItems: 1,
       items: {
@@ -73,15 +120,27 @@ export const problemDefinitionSchema = {
       minItems: 1,
       items: { type: "string", minLength: 1 }
     },
-    runner: {
+    runnerConfig: {
       type: "object",
       additionalProperties: false,
-      required: ["image", "entrypoint", "timeoutMs", "memoryMb"],
+      required: ["buildCommand", "testCommand", "runCommand", "timeoutSeconds", "networkAccess"],
       properties: {
-        image: { type: "string", minLength: 1 },
-        entrypoint: { type: "string", minLength: 1 },
-        timeoutMs: { type: "integer", minimum: 100, maximum: 120000 },
-        memoryMb: { type: "integer", minimum: 64, maximum: 4096 }
+        buildCommand: { type: "string", minLength: 1 },
+        testCommand: { type: "string", minLength: 1 },
+        runCommand: { type: "string", minLength: 1 },
+        timeoutSeconds: { type: "integer", minimum: 1, maximum: 120 },
+        networkAccess: { enum: ["disabled", "restricted", "enabled"] }
+      }
+    },
+    reviewConfig: {
+      type: "object",
+      additionalProperties: false,
+      required: ["prTitleRule", "prBodyRule", "commentStyle", "language"],
+      properties: {
+        prTitleRule: { type: "string", minLength: 3 },
+        prBodyRule: { type: "string", minLength: 3 },
+        commentStyle: { enum: ["business", "friendly", "strict"] },
+        language: { enum: ["ja", "en"] }
       }
     }
   }

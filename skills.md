@@ -1,29 +1,35 @@
 # skills.md
 
-## ドメイン説明
-本プロジェクトは「AI生成コードの修正・拡張学習」を目的としたオンラインジャッジ型学習基盤。
+## このプロダクトの目的
+ai-code-dojo は、AI生成コードに対する **読解・修正・テスト・PR作成** の実務フローを学習するための基盤です。
 
 ## 問題の作り方
-1. `problems/examples/<problem-id>/problem.json` を作成
-2. `starter/` に初期コードを配置
-3. `tests/visible` と `tests/hidden` を分離して作成
-4. `npm run schema:validate` を実行
+1. `problems/examples/<slug>/problem.json` を作成する
+2. `starter/` に学習者が編集するコードを配置する
+3. `tests/visible` と `tests/hidden` を分離して配置する
+4. `npm run schema:validate` で問題定義を検証する
 
-## 問題スキーマ説明
-- スキーマは `packages/problem-schema/src/index.ts` で管理
-- 必須: id/title/type/difficulty/language/tags/description/starterFiles/visibleTests/hiddenTests/runner
+## 問題スキーマの説明
+`packages/problem-schema/src/index.ts` で型と schema を管理する。主要項目は以下。
+- `metadata`: 問題識別・難易度・カテゴリ・対応言語
+- `statement`: 背景・課題・受け入れ条件・対象外
+- `starterCode`: 編集可能/不可ファイル定義
+- `visibleTests` / `hiddenTests`: テスト分離定義
+- `runnerConfig`: build/test/run/timeout/network方針
+- `reviewConfig`: PR運用ルール
+
+## visible tests と hidden tests の扱い
+- visible tests: 学習者へ公開し、ローカル確認用に利用する
+- hidden tests: 採点専用。UI/APIレスポンスには内容を返さない
+- hidden tests は機密扱いとし、公開領域へ出力しない
 
 ## 新しい言語ランナー追加手順
-1. `packages/runner-sdk` に必要な拡張型を追加
-2. runner側で enqueue/status/result 契約を実装
-3. 問題の `language` と `runner.image` / `entrypoint` を整備
-4. CIに最小検証を追加
+1. `packages/runner-sdk` の `RunnerAdapter` を満たす実装を追加
+2. `prepare / executeVisibleTests / executeHiddenTests / collectArtifacts / normalizeResult` を実装
+3. 新言語用サンプル問題を追加し schema validate を通す
+4. CI（unit/integration）に最小検証を追加する
 
-## hidden / visible tests の扱い
-- visible: 学習者に表示・実行可能
-- hidden: 採点時のみ使用、APIレスポンスへ含めない
-
-## ローカル実行方法
+## ローカル起動方法
 ```bash
 npm install
 npm run lint
@@ -34,17 +40,27 @@ npm run schema:validate
 npm run build
 ```
 
-## CIで確認するポイント
-- schema validation failure が出ていないか
-- typecheck/buildで将来拡張の型破壊がないか
-- integration test が runner 接続契約を満たすか
+## ローカルでの問題検証方法
+1. `problem.json` を更新
+2. 対応する `starter/` `tests/visible` `tests/hidden` を更新
+3. `npm run schema:validate` で構造検証
+4. 必要なら `node --test <visible test path>` で個別確認
+
+## CI で確認するポイント
+- lint: 禁止実装や危険APIの混入がないか
+- typecheck: 公開契約（schema/runner/config）の互換性維持
+- unit/integration: 問題定義とAPI契約の基本保証
+- schema validation: 問題フォーマットの破壊検知
+- build: 配布アーティファクト生成可否
 
 ## デプロイ時の注意点
-- staging / production を workflow と GitHub Environment で分離
-- deployは build/test成功後のみ実行
-- 実デプロイ先が未確定の場合は TODO で抽象化層を維持
+- staging/production を workflow と GitHub Environment で分離する
+- deploy は verify 成功後のみ実行する
+- migration step を deploy と同一workflowで明示し、失敗時はデプロイ中止
+- rollback 手順（直前安定版へ戻す）を運用手順として保持する
 
 ## よくある失敗例
-- hidden tests を problem metadata に入れ忘れる
-- runner の timeout/memory を未設定にする
-- APIで直接コード実行する実装を入れてしまう
+- `hiddenTests` の定義漏れ、または visible と同一パスを指定する
+- `runnerConfig.timeoutSeconds` を極端に短く設定する
+- API側で提出コードを直接実行する実装を混入させる
+- workflowで build/test をスキップして deploy する

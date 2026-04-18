@@ -22,8 +22,27 @@ jobs:
       - run: npm run schema:validate
       - run: npm run build
 
-  deploy:
+  migrate:
     needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Run migration (production)
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          # TODO: 実DB migrationコマンドへ差し替える。
+          # 例: npm run db:migrate -- --env production
+          node scripts/deploy/deploy.mjs migration-production
+
+  deploy:
+    needs: migrate
     runs-on: ubuntu-latest
     environment: production
     steps:
@@ -38,5 +57,5 @@ jobs:
           DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
           DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
         run: |
-          echo "DEPLOY_TARGET=${DEPLOY_TARGET:-undefined}"
+          # TODO: 実デプロイ先のCLI/Actionに差し替える。
           node scripts/deploy/deploy.mjs production
