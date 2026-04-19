@@ -17,12 +17,12 @@
 - レビュアーが再現できる手順を記載してください。
 
 ## テスト内容
-- [ ] `npm run lint`
-- [ ] `npm run typecheck`
-- [ ] `npm run test:unit`
-- [ ] `npm run test:integration`
-- [ ] `npm run schema:validate`
-- [ ] `npm run build`
+- [ ] `pnpm lint`
+- [ ] `pnpm typecheck`
+- [ ] `pnpm test:unit`
+- [ ] `pnpm test:integration`
+- [ ] `pnpm schema:validate`
+- [ ] `pnpm build`
 
 ## レビューで見てほしい点
 - とくに確認してほしい観点を記載してください。

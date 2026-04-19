@@ -22,17 +22,17 @@ ai-code-dojo は、**AI生成コードのバグ修正・機能追加を実務フ
 
 ## ローカルセットアップ
 ```bash
-npm install
+pnpm install
 ```
 
 ## よく使うコマンド
 ```bash
-npm run lint
-npm run typecheck
-npm run test:unit
-npm run test:integration
-npm run schema:validate
-npm run build
+pnpm lint
+pnpm typecheck
+pnpm test:unit
+pnpm test:integration
+pnpm schema:validate
+pnpm build
 ```
 
 ## ドキュメント

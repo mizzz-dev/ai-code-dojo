@@ -10,17 +10,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm run typecheck
-      - run: npm run test:unit
-      - run: npm run test:integration
-      - run: npm run schema:validate
-      - run: npm run build
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test:unit
+      - run: pnpm test:integration
+      - run: pnpm schema:validate
+      - run: pnpm build
 
   migrate:
     needs: verify
@@ -28,17 +31,20 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Run migration (staging)
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
           # TODO: 実DB migrationコマンドへ差し替える。
-          # 例: npm run db:migrate -- --env staging
+          # 例: pnpm db:migrate -- --env staging
           node scripts/deploy/deploy.mjs migration-staging
 
   deploy:
@@ -47,11 +53,14 @@ jobs:
     environment: staging
     steps:
       - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
       - name: Deploy (staging)
         env:
           DEPLOY_TARGET: ${{ vars.DEPLOY_TARGET }}
