@@ -3,10 +3,6 @@
   "private": true,
   "version": "0.1.0",
   "description": "Monorepo foundation for AI-generated code learning platform",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "scripts": {
     "lint": "node scripts/lint.mjs",
     "typecheck": "node scripts/typecheck.mjs",
@@ -14,5 +10,6 @@
     "test:integration": "node --test tests/integration/**/*.test.mjs",
     "schema:validate": "node scripts/validate-problems.mjs",
     "build": "node scripts/build.mjs"
-  }
+  },
+  "packageManager": "pnpm@10.13.1"
 }
