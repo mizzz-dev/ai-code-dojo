@@ -1,11 +1,11 @@
-export type RunnerStatus = "queued" | "preparing" | "running" | "completed" | "failed" | "timeout";
+export type RunnerStatus = 'queued' | 'preparing' | 'running' | 'completed' | 'failed' | 'timeout';
 
-export type TestVisibility = "visible" | "hidden";
+export type TestVisibility = 'visible' | 'hidden';
 
 export interface RunRequest {
   submissionId: string;
   problemSlug: string;
-  language: "javascript" | "typescript" | "python" | "sql" | "html-css";
+  language: 'javascript' | 'typescript' | 'python' | 'sql' | 'html-css';
   files: Array<{ path: string; content: string }>;
 }
 
@@ -19,7 +19,7 @@ export interface TestResult {
 
 export interface Artifact {
   path: string;
-  type: "log" | "coverage" | "report";
+  type: 'log' | 'coverage' | 'report';
   content: string;
 }
 
@@ -27,6 +27,7 @@ export interface NormalizedRunResult {
   status: RunnerStatus;
   score: number;
   logs: string[];
+  durationMs: number;
   testResults: TestResult[];
   artifacts: Artifact[];
 }
@@ -42,11 +43,7 @@ export interface RunnerAdapter {
   executeVisibleTests(context: RunnerExecutionContext): Promise<TestResult[]>;
   executeHiddenTests(context: RunnerExecutionContext): Promise<TestResult[]>;
   collectArtifacts(context: RunnerExecutionContext): Promise<Artifact[]>;
-  normalizeResult(input: {
-    visible: TestResult[];
-    hidden: TestResult[];
-    artifacts: Artifact[];
-  }): Promise<NormalizedRunResult>;
+  normalizeResult(input: { visible: TestResult[]; hidden: TestResult[]; artifacts: Artifact[] }): Promise<NormalizedRunResult>;
 }
 
 export interface RunnerClient {
@@ -54,6 +51,27 @@ export interface RunnerClient {
   getStatus(jobId: string): Promise<{ status: RunnerStatus }>;
   getResult(jobId: string): Promise<NormalizedRunResult>;
 }
+
+export const normalizeRunnerResult = (input: {
+  visible: TestResult[];
+  hidden: TestResult[];
+  artifacts: Artifact[];
+  durationMs: number;
+  logs?: string[];
+}): NormalizedRunResult => {
+  const testResults = [...input.visible, ...input.hidden];
+  const passedCount = testResults.filter((test) => test.passed).length;
+  const score = testResults.length === 0 ? 0 : Math.round((passedCount / testResults.length) * 100);
+
+  return {
+    status: 'completed',
+    score,
+    logs: input.logs ?? [],
+    durationMs: input.durationMs,
+    testResults,
+    artifacts: input.artifacts
+  };
+};
 
 export class InMemoryRunnerAdapter implements RunnerAdapter {
   async prepare(): Promise<void> {
@@ -72,21 +90,7 @@ export class InMemoryRunnerAdapter implements RunnerAdapter {
     return [];
   }
 
-  async normalizeResult(input: {
-    visible: TestResult[];
-    hidden: TestResult[];
-    artifacts: Artifact[];
-  }): Promise<NormalizedRunResult> {
-    const testResults = [...input.visible, ...input.hidden];
-    const passedCount = testResults.filter((test) => test.passed).length;
-    const score = testResults.length === 0 ? 0 : Math.round((passedCount / testResults.length) * 100);
-
-    return {
-      status: "completed",
-      score,
-      logs: ["normalized by InMemoryRunnerAdapter"],
-      testResults,
-      artifacts: input.artifacts
-    };
+  async normalizeResult(input: { visible: TestResult[]; hidden: TestResult[]; artifacts: Artifact[] }): Promise<NormalizedRunResult> {
+    return normalizeRunnerResult({ ...input, durationMs: 0, logs: ['normalized by InMemoryRunnerAdapter'] });
   }
 }

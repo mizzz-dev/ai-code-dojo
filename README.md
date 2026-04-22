@@ -1,48 +1,75 @@
 # ai-code-dojo
 
-ai-code-dojo は、**AI生成コードのバグ修正・機能追加を実務フローで学ぶ**ための練習プラットフォームです。  
-単なるアルゴリズム問題ではなく、既存コード読解・テスト実行・差分確認・PR文面作成までを学習体験に含めます。
+ai-code-dojo は、**AI生成コードのバグ修正・機能追加を実務フローで学ぶ**ための練習プラットフォームです。
 
-## このリポジトリで学べること
-- 既存コードに対する **bugfix / feature add / SQL修正** の進め方
-- visible tests / hidden tests を分けた問題運用の考え方
-- 提出コードを本体アプリから分離して扱う runner 設計
-- CI/CD と PR運用を含む実務寄りの開発フロー
+## 今回のMVPでできること
+- 問題一覧表示（Web/API）
+- 問題詳細表示（背景・issue・acceptance criteria・out of scope）
+- starter code の編集と提出
+- Worker による非同期採点（APIプロセスで直接実行しない）
+- visible tests 実行結果の表示
+- hidden tests を内部実行し、詳細を非公開で集計のみ返却
+- 提出結果（pass/fail, ログ, 実行時間）表示
 
-## モノレポ構成（MVP土台）
-- `apps/web`: 学習者向けWeb UI（画面機能は今後実装）
-- `apps/api`: 問題取得・提出受付API（実行は runner に委譲）
-- `apps/worker`: 非同期処理（採点ジョブ制御の土台）
-- `packages/problem-schema`: 問題定義の型・スキーマ
-- `packages/runner-sdk`: ランナー共通インターフェース
-- `packages/config`: 環境設定ローダ
-- `problems/examples`: サンプル問題（visible/hidden 分離）
-- `docs`: 要件・設計・運用方針
-- `.github/workflows`: CI / deploy ワークフロー
+## 今回のMVPで未対応
+- 認証・課金・ランキング
+- 本番レベルの完全サンドボックス
+- JavaScript以外の本格採点ランナー
+- 管理画面
 
-## ローカルセットアップ
+## モノレポ構成
+- `apps/web`: 問題一覧/詳細/提出結果の最小UI
+- `apps/api`: challenge取得・submission作成/取得API
+- `apps/worker`: submission採点ジョブ処理
+- `packages/problem-schema`: 問題定義スキーマ/型
+- `packages/runner-sdk`: runner interface / normalize
+- `problems/examples`: サンプル問題
+
+## ローカル起動方法
 ```bash
 pnpm install
 ```
 
-## よく使うコマンド
+### 1. Worker起動
 ```bash
-pnpm lint
-pnpm typecheck
-pnpm test:unit
-pnpm test:integration
-pnpm schema:validate
-pnpm build
+pnpm dev:worker
 ```
 
-## ドキュメント
-- MVP要件: `docs/requirements.md`
-- 初期アーキテクチャ: `docs/architecture.md`
-- 開発運用ルール: `AGENTS.md`
-- 問題追加・ランナー追加ガイド: `skills.md`
+### 2. API起動（別ターミナル）
+```bash
+RUNNER_API_BASE_URL=http://localhost:8081 pnpm dev:api
+```
 
-## 今後の拡張方針（概要）
-- Web/API/Worker の実装具体化（認証、提出管理、実行履歴）
-- runner の分離実行基盤（container/job queue）接続
-- 問題管理機能（版管理・難易度調整・レビュー運用）
-- staging / production へのデプロイ実装具体化
+### 3. Web起動（別ターミナル）
+```bash
+API_BASE_URL=http://localhost:8080 pnpm dev:web
+```
+
+### 4. ブラウザでアクセス
+- `http://localhost:3000`
+
+## API一覧
+- `GET /api/challenges`
+- `GET /api/challenges/:slug`
+- `POST /api/submissions`
+- `GET /api/submissions/:id`
+
+## サンプル問題の場所
+- `problems/examples/js-bugfix-add`
+- `problems/examples/ts-feature-user-display`
+- `problems/examples/sql-monthly-sales`
+
+## 提出フロー（MVP）
+1. Webで `GET /api/challenges` から問題一覧表示
+2. Webで `GET /api/challenges/:slug` から詳細とstarter取得
+3. Webで提出すると API `POST /api/submissions` が submission 作成
+4. API が Worker `/jobs` に採点依頼
+5. Worker が visible/hidden tests を実行して結果保存
+6. Webで `GET /api/submissions/:id` をポーリングして結果表示
+
+## テスト
+```bash
+pnpm test:unit
+pnpm test:integration
+pnpm test:smoke
+```
