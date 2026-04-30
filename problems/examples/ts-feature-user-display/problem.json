@@ -4,9 +4,15 @@
     "slug": "ts-feature-user-display",
     "difficulty": "easy",
     "category": "feature",
-    "supportedLanguages": ["typescript"],
+    "supportedLanguages": [
+      "typescript"
+    ],
     "framework": "node",
-    "tags": ["feature", "string", "typescript"]
+    "tags": [
+      "feature",
+      "string",
+      "typescript"
+    ]
   },
   "statement": {
     "background": "管理画面のユーザー一覧で表示名を統一する要件が追加されました。",
@@ -16,18 +22,31 @@
       "firstName のみある場合は firstName を返す",
       "どちらもない場合は `Unknown User` を返す"
     ],
-    "outOfScope": ["多言語ロケール対応", "敬称の自動付与"]
+    "outOfScope": [
+      "多言語ロケール対応",
+      "敬称の自動付与"
+    ]
   },
   "learningPoints": [
     "仕様に沿った分岐追加と既存型の維持",
     "境界値ケースを hidden test で担保する考え方"
   ],
   "starterCode": [
-    { "path": "starter/user.ts", "readonly": false },
-    { "path": "tests/visible/user.visible.test.ts", "readonly": true }
+    {
+      "path": "starter/user.ts",
+      "readonly": false
+    },
+    {
+      "path": "tests/visible/user.visible.test.ts",
+      "readonly": true
+    }
   ],
-  "visibleTests": ["tests/visible/user.visible.test.ts"],
-  "hiddenTests": ["tests/hidden/user.hidden.test.ts"],
+  "visibleTests": [
+    "tests/visible/user.visible.test.ts"
+  ],
+  "hiddenTests": [
+    "tests/hidden/user.hidden.test.ts"
+  ],
   "runnerConfig": {
     "buildCommand": "echo 'build is handled by runner image'",
     "testCommand": "node --test tests/visible/user.visible.test.ts tests/hidden/user.hidden.test.ts",
@@ -36,9 +55,15 @@
     "networkAccess": "disabled"
   },
   "reviewConfig": {
-    "prTitleRule": "feat(problem): ts-feature-user-display の機能追加",
-    "prBodyRule": "仕様差分・実装意図・テスト結果を日本語で記載する",
-    "commentStyle": "business",
-    "language": "ja"
+    "prTitleTemplate": "feat(problem): ts-feature-user-display の機能追加",
+    "prBodyTemplate": "仕様差分・実装意図・テスト結果を日本語で記載する",
+    "reviewerCommentTemplates": [
+      "テスト観点を満たしています。"
+    ],
+    "language": "ja",
+    "focusPoints": [
+      "要件充足",
+      "テスト"
+    ]
   }
 }

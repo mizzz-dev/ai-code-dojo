@@ -64,3 +64,11 @@ pnpm build
 - `runnerConfig.timeoutSeconds` を極端に短く設定する
 - API側で提出コードを直接実行する実装を混入させる
 - workflowで build/test をスキップして deploy する
+
+## challenge追加/運用スキル
+- challenge追加は admin API `POST /api/admin/challenges` を利用し、初版はversion=1で作成。
+- 新versionは `POST /api/admin/challenges/:id/versions` で切る（直接上書き禁止）。
+- 公開は `PATCH /api/admin/challenges/:id/publish` の status=`published` で切替。
+- reviewConfig は `prTitleTemplate`, `prBodyTemplate`, `reviewerCommentTemplates`, `focusPoints`, `language` を設定。
+- よくあるschemaエラー: unsupported language, reviewConfig必須キー欠落, visible/hidden testsの配列不備。
+- review preview は `GET /api/challenges/:slug/review-preview` で確認。

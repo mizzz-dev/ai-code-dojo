@@ -48,3 +48,9 @@ AI生成コードのバグ修正・機能追加を学習できる練習プラッ
 ## テスト追加方針
 - unit/integration/schema validation を最低ラインとして追加
 - 新機能には成功系と失敗系を含める
+
+## challenge運用ルール（追加）
+- challenge 編集は既存versionを直接上書きせず、`challenge_versions` に新規version追加で対応する。
+- publishは `published` / `draft` の状態遷移で管理し、学習者向け公開はpublishedのみとする。
+- reviewConfig変更時は `review-preview` の表示と文言崩れを確認する。
+- hidden tests は管理系保存に限定し、学習者向けUI/APIへ露出しない。

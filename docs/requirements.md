@@ -33,3 +33,8 @@
 - queueの正式採用（Redis/SQS等）
 - セキュアな分離実行基盤（container/job）
 - hidden tests 管理運用（暗号化・アクセス制御）
+
+## 追加要件（問題管理運用）
+- challenge の公開/非公開管理と version 追跡を必須とする。
+- hidden tests は内部保存し、学習者向けAPI/UIに露出しない。
+- reviewConfig から日本語のPRタイトル/本文/レビューコメント雛形を生成できること。

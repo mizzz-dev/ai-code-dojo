@@ -73,3 +73,9 @@ pnpm test:unit
 pnpm test:integration
 pnpm test:smoke
 ```
+
+## Challenge 管理運用（MVP+）
+- 管理API: `GET/POST /api/admin/challenges`, `GET /api/admin/challenges/:id`, `POST /api/admin/challenges/:id/versions`, `PATCH /api/admin/challenges/:id/publish`
+- Challenge は `challenges` と `challenge_versions` の2層管理です。versionは直接上書きせず追加します。
+- hidden tests は保存専用で、学習者向けAPIには返却しません。
+- 模擬PR表示は `reviewConfig` のテンプレートから `GET /api/challenges/:slug/review-preview` で生成します。

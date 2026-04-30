@@ -30,10 +30,11 @@ export interface ProblemDefinition {
     networkAccess: 'disabled' | 'restricted' | 'enabled';
   };
   reviewConfig: {
-    prTitleRule: string;
-    prBodyRule: string;
-    commentStyle: 'business' | 'friendly' | 'strict';
+    prTitleTemplate: string;
+    prBodyTemplate: string;
+    reviewerCommentTemplates: string[];
     language: 'ja' | 'en';
+    focusPoints: string[];
   };
 }
 
@@ -148,12 +149,13 @@ export const problemDefinitionSchema = {
     reviewConfig: {
       type: 'object',
       additionalProperties: false,
-      required: ['prTitleRule', 'prBodyRule', 'commentStyle', 'language'],
+      required: ['prTitleTemplate', 'prBodyTemplate', 'reviewerCommentTemplates', 'language', 'focusPoints'],
       properties: {
-        prTitleRule: { type: 'string', minLength: 3 },
-        prBodyRule: { type: 'string', minLength: 3 },
-        commentStyle: { enum: ['business', 'friendly', 'strict'] },
-        language: { enum: ['ja', 'en'] }
+        prTitleTemplate: { type: 'string', minLength: 3 },
+        prBodyTemplate: { type: 'string', minLength: 3 },
+        reviewerCommentTemplates: { type: 'array', minItems: 1, items: { type: 'string', minLength: 3 } },
+        language: { enum: ['ja', 'en'] },
+        focusPoints: { type: 'array', minItems: 1, items: { type: 'string', minLength: 2 } }
       }
     }
   }

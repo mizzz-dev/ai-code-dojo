@@ -88,6 +88,17 @@ const server = http.createServer(async (req, res) => {
       return sendHtml(res, 200, `<h1>採点中...</h1><meta http-equiv="refresh" content="1" /><p>submission: ${id}</p>`);
     }
 
+    let reviewPreviewHtml = '<p>review previewは未公開です。</p>';
+    try {
+      const reviewRes = await fetch(`${apiBaseUrl}/api/challenges/${submission.challengeSlug}/review-preview`);
+      if (reviewRes.ok) {
+        const { reviewPreview } = await reviewRes.json();
+        reviewPreviewHtml = `<h3>模擬PR表示</h3><p><strong>想定タイトル:</strong> ${escapeHtml(reviewPreview.prTitle)}</p><pre>${escapeHtml(reviewPreview.prBody)}</pre><ul>${reviewPreview.reviewerComments.map((c) => `<li>${escapeHtml(c)}</li>`).join('')}</ul><p><strong>要点:</strong> ${escapeHtml(reviewPreview.summary)}</p>`;
+      }
+    } catch {
+      // noop
+    }
+
     return sendHtml(
       res,
       200,
@@ -101,6 +112,7 @@ const server = http.createServer(async (req, res) => {
       <p>passed ${submission.result.hiddenTests.passedCount}/${submission.result.hiddenTests.total}</p>
       <h3>ログ</h3>
       <pre>${escapeHtml(submission.result.logs.join('\n\n'))}</pre>
+      ${reviewPreviewHtml}
       <p><a href="/">一覧へ戻る</a></p>`
     );
   }

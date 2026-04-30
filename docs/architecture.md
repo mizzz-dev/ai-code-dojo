@@ -46,3 +46,9 @@
 - submission/results を RDB へ移行
 - runner を container/job 実行へ置換（タイムアウト・メモリ制限・ネットワーク制限を強化）
 - artifact 保存先をオブジェクトストレージへ移行
+
+## challenge repository / versioning
+- 管理機能は `apps/api/src/repositories/admin-challenge-repository.mjs` でファイル保存（将来DB移行しやすいRepository層）を採用。
+- `challenges` は公開状態とcurrentVersion参照のみを持ち、実体は `challenge_versions` に分離。
+- admin API と learner API を分離し、hiddenTestsはlearner向けレスポンスに含めない。
+- review preview は `reviewConfig` テンプレートを利用する生成層で実装し、将来AI生成に差し替え可能。

@@ -4,9 +4,15 @@
     "slug": "sql-monthly-sales",
     "difficulty": "medium",
     "category": "sql",
-    "supportedLanguages": ["sql"],
+    "supportedLanguages": [
+      "sql"
+    ],
     "framework": "sql",
-    "tags": ["sql", "aggregation", "group-by"]
+    "tags": [
+      "sql",
+      "aggregation",
+      "group-by"
+    ]
   },
   "statement": {
     "background": "分析チームが月次売上レポートを運用しており、既存SQLの改修が必要です。",
@@ -16,18 +22,31 @@
       "month カラム昇順で結果を返す",
       "NULL 値を除外した合計を返す"
     ],
-    "outOfScope": ["時区間のタイムゾーン補正", "複数通貨換算"]
+    "outOfScope": [
+      "時区間のタイムゾーン補正",
+      "複数通貨換算"
+    ]
   },
   "learningPoints": [
     "GROUP BY と ORDER BY の基本運用",
     "期待出力を満たすSQLレビュー観点の習得"
   ],
   "starterCode": [
-    { "path": "starter/query.sql", "readonly": false },
-    { "path": "tests/visible/expected.csv", "readonly": true }
+    {
+      "path": "starter/query.sql",
+      "readonly": false
+    },
+    {
+      "path": "tests/visible/expected.csv",
+      "readonly": true
+    }
   ],
-  "visibleTests": ["tests/visible/expected.csv"],
-  "hiddenTests": ["tests/hidden/assertion.md"],
+  "visibleTests": [
+    "tests/visible/expected.csv"
+  ],
+  "hiddenTests": [
+    "tests/hidden/assertion.md"
+  ],
   "runnerConfig": {
     "buildCommand": "echo 'sql problem has no build step'",
     "testCommand": "python run_sql_tests.py",
@@ -36,9 +55,15 @@
     "networkAccess": "disabled"
   },
   "reviewConfig": {
-    "prTitleRule": "feat(problem): sql-monthly-sales クエリ改善",
-    "prBodyRule": "SQL方針・期待結果との差分・検証結果を日本語で記載する",
-    "commentStyle": "business",
-    "language": "ja"
+    "prTitleTemplate": "feat(problem): sql-monthly-sales クエリ改善",
+    "prBodyTemplate": "SQL方針・期待結果との差分・検証結果を日本語で記載する",
+    "reviewerCommentTemplates": [
+      "テスト観点を満たしています。"
+    ],
+    "language": "ja",
+    "focusPoints": [
+      "要件充足",
+      "テスト"
+    ]
   }
 }
