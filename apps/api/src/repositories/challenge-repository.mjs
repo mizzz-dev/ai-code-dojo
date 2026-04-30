@@ -1,4 +1,5 @@
 import { readdir, readFile } from 'node:fs/promises';
+import { access } from 'node:fs/promises';
 import path from 'node:path';
 
 const PROBLEMS_ROOT = path.resolve(process.cwd(), 'problems/examples');
@@ -29,6 +30,7 @@ export const listChallenges = async () => {
 
 export const getChallengeBySlug = async (slug) => {
   const problemPath = path.join(PROBLEMS_ROOT, slug, 'problem.json');
+  await access(problemPath);
   const problem = await readJson(problemPath);
   const starterFile = problem.starterCode.find((file) => !file.readonly);
   const starterCodePath = starterFile ? path.join(PROBLEMS_ROOT, slug, starterFile.path) : null;

@@ -31,8 +31,15 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && url.pathname.startsWith('/api/challenges/')) {
       const slug = url.pathname.replace('/api/challenges/', '');
-      const challenge = await getChallengeBySlug(slug);
-      return sendJson(res, 200, { challenge });
+      try {
+        const challenge = await getChallengeBySlug(slug);
+        return sendJson(res, 200, { challenge });
+      } catch (error) {
+        if (error.code === 'ENOENT') {
+          return sendJson(res, 404, { error: 'challengeが見つかりません。' });
+        }
+        throw error;
+      }
     }
 
     if (req.method === 'POST' && url.pathname === '/api/submissions') {
