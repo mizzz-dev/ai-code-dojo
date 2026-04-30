@@ -75,7 +75,7 @@ export const runJavaScriptChallenge = async ({ challenge, challengeBasePath, cod
     durationMs: Date.now() - startedAt,
     logs: [
       `[visible] ${visibleRun.output}`,
-      `[hidden] ${hiddenRun.output}`
+      '[hidden] hidden tests log is not exposed in MVP.'
     ],
     testResults,
     artifacts: []
