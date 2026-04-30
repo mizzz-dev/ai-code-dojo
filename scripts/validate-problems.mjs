@@ -26,7 +26,7 @@ const requiredMetadata = [
 ];
 const requiredStatement = ["background", "issue", "acceptanceCriteria", "outOfScope"];
 const requiredRunner = ["buildCommand", "testCommand", "runCommand", "timeoutSeconds", "networkAccess"];
-const requiredReview = ["prTitleRule", "prBodyRule", "commentStyle", "language"];
+const requiredReview = ["prTitleTemplate", "prBodyTemplate", "reviewerCommentTemplates", "language", "focusPoints"];
 const allowedLanguages = new Set(["javascript", "typescript", "python", "sql", "html-css"]);
 const allowedNetworkAccess = new Set(["disabled", "restricted", "enabled"]);
 

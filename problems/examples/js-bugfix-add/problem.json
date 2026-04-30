@@ -4,9 +4,15 @@
     "slug": "js-bugfix-add",
     "difficulty": "easy",
     "category": "bugfix",
-    "supportedLanguages": ["javascript"],
+    "supportedLanguages": [
+      "javascript"
+    ],
     "framework": "vanilla",
-    "tags": ["array", "bugfix", "regression"]
+    "tags": [
+      "array",
+      "bugfix",
+      "regression"
+    ]
   },
   "statement": {
     "background": "既存の受注集計画面で合計値が一致しない不具合が報告されています。",
@@ -16,18 +22,31 @@
       "正負の整数配列を正しく合計できる",
       "既存の関数シグネチャを変更しない"
     ],
-    "outOfScope": ["BigInt への対応", "非数値要素のバリデーション追加"]
+    "outOfScope": [
+      "BigInt への対応",
+      "非数値要素のバリデーション追加"
+    ]
   },
   "learningPoints": [
     "既存コードの不具合箇所を最小差分で修正する",
     "visible test を起点に回帰を防ぐ"
   ],
   "starterCode": [
-    { "path": "starter/sum.js", "readonly": false },
-    { "path": "tests/visible/sum.visible.test.js", "readonly": true }
+    {
+      "path": "starter/sum.js",
+      "readonly": false
+    },
+    {
+      "path": "tests/visible/sum.visible.test.js",
+      "readonly": true
+    }
   ],
-  "visibleTests": ["tests/visible/sum.visible.test.js"],
-  "hiddenTests": ["tests/hidden/sum.hidden.test.js"],
+  "visibleTests": [
+    "tests/visible/sum.visible.test.js"
+  ],
+  "hiddenTests": [
+    "tests/hidden/sum.hidden.test.js"
+  ],
   "runnerConfig": {
     "buildCommand": "echo 'no build required'",
     "testCommand": "node --test tests/visible/sum.visible.test.js tests/hidden/sum.hidden.test.js",
@@ -36,9 +55,15 @@
     "networkAccess": "disabled"
   },
   "reviewConfig": {
-    "prTitleRule": "fix(problem): js-bugfix-add の不具合修正",
-    "prBodyRule": "再現手順・原因・修正内容・確認結果を日本語で記載する",
-    "commentStyle": "business",
-    "language": "ja"
+    "prTitleTemplate": "fix(problem): js-bugfix-add の不具合修正",
+    "prBodyTemplate": "再現手順・原因・修正内容・確認結果を日本語で記載する",
+    "reviewerCommentTemplates": [
+      "テスト観点を満たしています。"
+    ],
+    "language": "ja",
+    "focusPoints": [
+      "要件充足",
+      "テスト"
+    ]
   }
 }
