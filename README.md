@@ -79,3 +79,9 @@ pnpm test:smoke
 - Challenge は `challenges` と `challenge_versions` の2層管理です。versionは直接上書きせず追加します。
 - hidden tests は保存専用で、学習者向けAPIには返却しません。
 - 模擬PR表示は `reviewConfig` のテンプレートから `GET /api/challenges/:slug/review-preview` で生成します。
+
+## UI実装ルール（学習者向け基盤）
+- デザイントークンは `packages/ui/src/tokens/tokens.css` に集約し、直書きを避ける。
+- 共通UIは `packages/ui/src/components`、レイアウトは `packages/ui/src/layout` に分離する。
+- 学習者向けShellは `apps/web/src/ui/learner-shell.tsx` を基準に拡張する。
+- レスポンシブは Desktop/Tablet/Mobile の3段階で崩れない構成を優先する。
