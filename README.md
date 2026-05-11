@@ -18,7 +18,7 @@ ai-code-dojo は、**AI生成コードのバグ修正・機能追加を実務フ
 - 管理画面
 
 ## モノレポ構成
-- `apps/web`: 問題一覧/詳細/提出結果の最小UI
+- `apps/web`: 学習者向けルート（問題一覧/詳細/提出結果/進捗/ダッシュボード）の実データUI
 - `apps/api`: challenge取得・submission作成/取得API
 - `apps/worker`: submission採点ジョブ処理
 - `packages/problem-schema`: 問題定義スキーマ/型
@@ -85,3 +85,9 @@ pnpm test:smoke
 - 共通UIは `packages/ui/src/components`、レイアウトは `packages/ui/src/layout` に分離する。
 - 学習者向けShellは `apps/web/src/ui/learner-shell.tsx` を基準に拡張する。
 - レスポンシブは Desktop/Tablet/Mobile の3段階で崩れない構成を優先する。
+
+
+## 学習者UIの実画面適用（Issue #16）
+- 新UI適用ルート: `/`, `/challenges/:slug`, `/submissions/:id`, `/progress`, `/dashboard`
+- submission導線: challenge詳細の提出フォーム → `POST /api/submissions` → 結果画面で `GET /api/submissions/:id` をポーリング
+- 状態表示: loading/empty/error/success を全画面で統一トーンにし、API失敗時も復帰可能なメッセージを表示

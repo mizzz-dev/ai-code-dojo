@@ -13,3 +13,5 @@ importers:
   packages/problem-schema: {}
 
   packages/runner-sdk: {}
+
+  packages/ui: {}
