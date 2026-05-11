@@ -26,3 +26,9 @@
 ## 開発者向け確認導線
 Storybook 未導入期間は `apps/web/src/ui/learner-shell.tsx` を基準のプレビュー導線として扱う。
 
+
+
+## 実装適用メモ（Issue #16）
+- プレビュー専用コンポーネントは `learner-shell.tsx` に残し、実画面では同一情報設計（CTA優先、補助情報は二次配置）を維持して適用する。
+- 実データ画面の状態表示は `loading / empty / error / success` を共通メッセージトーンで実装し、画面間の体験差を縮小する。
+- hidden tests は学習者画面で詳細を表示せず、集計値のみ提示する learner-safe 方針を継続する。
