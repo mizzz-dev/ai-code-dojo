@@ -4,9 +4,11 @@ const SESSION_TTL_MS = 1000 * 60 * 60 * 8;
 const sessions = new Map();
 
 const users = {
-  admin: { id: 'u-admin', username: 'admin', role: 'admin', password: process.env.ADMIN_PASSWORD ?? 'admin1234' },
-  learner: { id: 'u-learner', username: 'learner', role: 'learner', password: process.env.LEARNER_PASSWORD ?? 'learner1234' }
+  admin: { id: 'u-admin', username: 'admin', role: 'admin', password: process.env.ADMIN_PASSWORD },
+  learner: { id: 'u-learner', username: 'learner', role: 'learner', password: process.env.LEARNER_PASSWORD }
 };
+
+const isUserCredentialEnabled = (user) => typeof user?.password === 'string' && user.password.length > 0;
 
 const parseCookies = (raw = '') => Object.fromEntries(raw.split(';').map((v) => v.trim()).filter(Boolean).map((pair) => {
   const idx = pair.indexOf('=');
@@ -20,6 +22,7 @@ const parseHeaderUser = (raw = '') => {
   const [username, password] = raw.split(':');
   if (!username || !password) return null;
   const user = users[username];
+  if (!isUserCredentialEnabled(user)) return null;
   if (!user || user.password !== password) return null;
   return { id: user.id, username: user.username, role: user.role };
 };
@@ -42,6 +45,7 @@ export const clearSessionCookie = (res) => {
 
 export const login = (username, password) => {
   const user = users[username];
+  if (!isUserCredentialEnabled(user)) return null;
   if (!user || user.password !== password) return null;
   const token = createSession({ id: user.id, username: user.username, role: user.role });
   return { token, user: { id: user.id, username: user.username, role: user.role } };

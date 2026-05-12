@@ -56,5 +56,6 @@
 ## 認証・認可（MVP運用）
 - 認証: cookieベースの最小セッション導線を導入。
 - ロール: `learner` / `admin` を定義し、管理導線は `admin` のみに制限。
+- 認証情報: `ADMIN_PASSWORD` / `LEARNER_PASSWORD` を必須化し、未設定時は `/api/auth/login` と `x-web-user` の認証を安全に失敗させる。
 - API境界: `/api/admin/*` は admin必須。`/api/submissions/:id` は learner-safe を標準とし、internal情報は admin のみ。
 - 将来拡張: `apps/api/src/auth.mjs` を差し替えることで OAuth / DB session へ移行可能。

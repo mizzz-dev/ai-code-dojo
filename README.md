@@ -95,6 +95,7 @@ pnpm test:smoke
 ## 認証・認可（MVP）
 - ロール: `learner`, `admin`
 - Webログイン: `/login`
+- 必須環境変数: `ADMIN_PASSWORD`, `LEARNER_PASSWORD`（未設定時は安全側で認証失敗）
 - 保護対象:
   - Web: `/admin/challenges`, `/admin/challenges/:id`
   - API: `/api/admin/*`
