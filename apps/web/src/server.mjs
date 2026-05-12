@@ -22,10 +22,11 @@ const escapeHtml = (value = '') => String(value)
 const navLinks = [
   ['/', '問題一覧'],
   ['/progress', '進捗'],
-  ['/dashboard', 'ダッシュボード']
+  ['/dashboard', 'ダッシュボード'],
+  ['/admin/challenges', '管理画面']
 ];
 
-const renderLayout = ({ title, activePath, content }) => `<!doctype html>
+const renderLayout = ({ title, activePath, content, admin = false }) => `<!doctype html>
 <html lang="ja">
 <head>
 <meta charset="utf-8" />
@@ -33,30 +34,38 @@ const renderLayout = ({ title, activePath, content }) => `<!doctype html>
 <title>${escapeHtml(title)} | AI Code Dojo</title>
 <style>
   :root { color-scheme: light; }
-  body { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f6f8ff; color: #1f2430; margin: 0; }
+  body { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: ${admin ? '#f3f4f6' : '#f6f8ff'}; color: #1f2430; margin: 0; }
   .app { max-width: 1080px; margin: 0 auto; padding: 16px; }
   .header { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
   .brand { font-weight: 700; font-size: 20px; }
   .nav { display: flex; gap: 8px; flex-wrap: wrap; }
   .nav a { text-decoration: none; color: #344054; border: 1px solid #d0d5dd; border-radius: 999px; padding: 6px 12px; font-size: 14px; }
-  .nav a.active { background: #2656f6; border-color: #2656f6; color: #fff; }
+  .nav a.active { background: ${admin ? '#111827' : '#2656f6'}; border-color: ${admin ? '#111827' : '#2656f6'}; color: #fff; }
   .card { background: #fff; border: 1px solid #e4e7ec; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
   .muted { color: #667085; }
-  .cta { display: inline-block; background: #2656f6; color: white; padding: 8px 12px; border-radius: 8px; text-decoration: none; border: 0; cursor: pointer; }
+  .cta { display: inline-block; background: ${admin ? '#1f2937' : '#2656f6'}; color: white; padding: 8px 12px; border-radius: 8px; text-decoration: none; border: 0; cursor: pointer; }
+  .danger { background: #b42318; }
   .secondary { background: #fff; color: #344054; border: 1px solid #d0d5dd; }
   .badge { display: inline-block; border-radius: 999px; padding: 2px 8px; font-size: 12px; margin-right: 6px; }
   .ok { background: #e7f8ee; color: #067647; }
   .warn { background: #fff4e6; color: #b54708; }
   .fail { background: #fee4e2; color: #b42318; }
+  .admin-tag { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: #4b5563; }
   table { width: 100%; border-collapse: collapse; }
-  td, th { text-align: left; border-bottom: 1px solid #eaecf0; padding: 10px 8px; }
-  textarea { width: 100%; min-height: 280px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  td, th { text-align: left; border-bottom: 1px solid #eaecf0; padding: 10px 8px; vertical-align: top; }
+  textarea { width: 100%; min-height: 180px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  input[type="text"] { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #d0d5dd; }
+  pre { background: #f8fafc; border: 1px solid #e4e7ec; border-radius: 8px; padding: 12px; overflow: auto; }
+  .actions { display: flex; gap: 8px; flex-wrap: wrap; }
 </style>
 </head>
 <body>
   <main class="app">
     <header class="header">
-      <div class="brand">AI Code Dojo</div>
+      <div>
+        <div class="brand">AI Code Dojo</div>
+        ${admin ? '<div class="admin-tag">Admin Console</div>' : ''}
+      </div>
       <nav class="nav">${navLinks.map(([href, label]) => `<a class="${href === activePath ? 'active' : ''}" href="${href}">${label}</a>`).join('')}</nav>
     </header>
     ${content}
@@ -66,8 +75,82 @@ const renderLayout = ({ title, activePath, content }) => `<!doctype html>
 
 const renderStateCard = (state, message) => `<section class="card"><span class="badge ${state}">${state}</span><p>${escapeHtml(message)}</p></section>`;
 
+const safeJsonParse = (raw, fallback) => {
+  try { return JSON.parse(raw); } catch { return fallback; }
+};
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
+
+  if (req.method === 'GET' && url.pathname === '/admin/challenges') {
+    const response = await fetch(`${apiBaseUrl}/api/admin/challenges`);
+    const data = await response.json();
+    const challenges = Array.isArray(data?.challenges) ? data.challenges : [];
+    const rows = challenges.map((item) => `<tr><td><strong>${escapeHtml(item.slug)}</strong><br><span class="muted">${escapeHtml(item.id)}</span></td><td><span class="badge ${item.status === 'published' ? 'ok' : 'warn'}">${escapeHtml(item.status)}</span></td><td>${escapeHtml(item.updatedAt ?? item.createdAt ?? '-')}</td><td><a class="cta secondary" href="/admin/challenges/${encodeURIComponent(item.id)}">編集</a></td></tr>`).join('');
+    return sendHtml(res, 200, renderLayout({
+      title: '管理一覧',
+      activePath: '/admin/challenges',
+      admin: true,
+      content: `<section class="card"><h1>管理一覧</h1><p class="muted">学習者向けUIとは分離した運用画面です。公開状態・バージョン管理・危険操作をここから実行します。</p><table><tr><th>Challenge</th><th>状態</th><th>更新日時</th><th></th></tr>${rows || '<tr><td colspan="4" class="muted">登録された challenge がありません。</td></tr>'}</table></section>`
+    }));
+  }
+
+  if (req.method === 'GET' && url.pathname.startsWith('/admin/challenges/')) {
+    const id = decodeURIComponent(url.pathname.replace('/admin/challenges/', ''));
+    const response = await fetch(`${apiBaseUrl}/api/admin/challenges/${id}`);
+    if (response.status === 404) {
+      return sendHtml(res, 404, renderLayout({ title: '管理編集', activePath: '/admin/challenges', admin: true, content: renderStateCard('warn', 'challengeが見つかりません。') }));
+    }
+    const data = await response.json();
+    const challenge = data.challenge;
+    const currentVersion = challenge.versions?.[0];
+    const versionRows = (challenge.versions ?? []).map((v) => `<tr><td>v${v.version}</td><td>${escapeHtml(v.createdAt)}</td><td>${v.id === challenge.currentVersionId ? '<span class="badge ok">current</span>' : ''}</td></tr>`).join('');
+
+    return sendHtml(res, 200, renderLayout({
+      title: `管理編集: ${challenge.slug}`,
+      activePath: '/admin/challenges',
+      admin: true,
+      content: `<section class="card"><h1>${escapeHtml(challenge.slug)}</h1><p><span class="badge ${challenge.status === 'published' ? 'ok' : 'warn'}">${escapeHtml(challenge.status)}</span> <span class="muted">ID: ${escapeHtml(challenge.id)}</span></p><div class="actions"><form method="POST" action="/admin/challenges/${escapeHtml(challenge.id)}/publish"><input type="hidden" name="status" value="published" /><button class="cta" type="submit">Publish</button></form><form method="POST" action="/admin/challenges/${escapeHtml(challenge.id)}/publish"><input type="hidden" name="status" value="draft" /><button class="cta danger" type="submit">Unpublish (draft化)</button></form></div><p class="muted">※ Unpublish は学習者公開を止める危険操作です。実行前に影響範囲を確認してください。</p></section>
+      <section class="card"><h2>Version 管理</h2><table><tr><th>Version</th><th>作成日時</th><th>状態</th></tr>${versionRows}</table></section>
+      <section class="card"><h2>問題編集（新規version追加）</h2><p class="muted">既存versionは上書きせず、新規versionとして保存します。</p>
+      <form method="POST" action="/admin/challenges/${escapeHtml(challenge.id)}/versions">
+        <p><label>metadata.title<br><input type="text" name="title" value="${escapeHtml(currentVersion?.metadata?.title ?? '')}" /></label></p>
+        <p><label>hiddenTests (JSON)<br><textarea name="hiddenTests">${escapeHtml(JSON.stringify(currentVersion?.hiddenTests ?? [], null, 2))}</textarea></label></p>
+        <p><label>reviewConfig (JSON)<br><textarea name="reviewConfig">${escapeHtml(JSON.stringify(currentVersion?.reviewConfig ?? {}, null, 2))}</textarea></label></p>
+        <button class="cta" type="submit">新規versionを保存</button>
+      </form>
+      </section>
+      <section class="card"><h2>運用メモ</h2><ul><li>hidden tests は学習者向けUI/APIへ露出しません。</li><li>reviewConfig変更時はreview-preview表示崩れを確認してください。</li></ul></section>`
+    }));
+  }
+
+  if (req.method === 'POST' && url.pathname.endsWith('/publish') && url.pathname.startsWith('/admin/challenges/')) {
+    const id = url.pathname.replace('/admin/challenges/', '').replace('/publish', '');
+    const form = await parseFormBody(req);
+    await fetch(`${apiBaseUrl}/api/admin/challenges/${id}/publish`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status: form.get('status') }) });
+    res.writeHead(302, { location: `/admin/challenges/${id}` });
+    return res.end();
+  }
+
+  if (req.method === 'POST' && url.pathname.endsWith('/versions') && url.pathname.startsWith('/admin/challenges/')) {
+    const id = url.pathname.replace('/admin/challenges/', '').replace('/versions', '');
+    const form = await parseFormBody(req);
+    const detailRes = await fetch(`${apiBaseUrl}/api/admin/challenges/${id}`);
+    const data = await detailRes.json();
+    const base = data.challenge.versions?.[0] ?? {};
+    const versionData = {
+      ...base,
+      metadata: { ...(base.metadata ?? {}), title: form.get('title') || base.metadata?.title || 'untitled' },
+      hiddenTests: safeJsonParse(form.get('hiddenTests') ?? '[]', base.hiddenTests ?? []),
+      reviewConfig: safeJsonParse(form.get('reviewConfig') ?? '{}', base.reviewConfig ?? {}),
+      createdAt: undefined,
+      id: undefined,
+      version: undefined
+    };
+    await fetch(`${apiBaseUrl}/api/admin/challenges/${id}/versions`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ versionData }) });
+    res.writeHead(302, { location: `/admin/challenges/${id}` });
+    return res.end();
+  }
 
   if (req.method === 'GET' && url.pathname === '/dashboard') {
     return sendHtml(res, 200, renderLayout({
