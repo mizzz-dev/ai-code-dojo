@@ -22,6 +22,11 @@ const escapeHtml = (value = '') => String(value)
 
 
 const redirect = (res, location) => { res.writeHead(302, { location }); res.end(); };
+const renderLoginPage = (errorMessage = '') => renderLayout({
+  title: 'ログイン',
+  activePath: '/',
+  content: `<section class="card"><h1>ログイン</h1><form method="POST" action="/login"><p><label>username<br><input name="username" type="text" value="learner" /></label></p><p><label>password<br><input name="password" type="password" value="" /></label></p><button class="cta" type="submit">ログイン</button></form>${errorMessage ? `<p class="fail">${escapeHtml(errorMessage)}</p>` : ''}<p class="muted">環境変数で設定された認証情報を入力してください。</p></section>`
+});
 const requireAdminPage = (req, res) => {
   const user = readWebSession(req);
   if (!user) { redirect(res, '/login?next=/admin/challenges'); return null; }
@@ -102,16 +107,24 @@ const server = http.createServer(async (req, res) => {
 
 
   if (req.method === 'GET' && url.pathname === '/login') {
-    return sendHtml(res, 200, renderLayout({
-      title: 'ログイン', activePath: '/', content: `<section class="card"><h1>ログイン</h1><form method="POST" action="/login"><p><label>username<br><input name="username" type="text" value="learner" /></label></p><p><label>password<br><input name="password" type="text" value="learner1234" /></label></p><button class="cta" type="submit">ログイン</button></form><p class="muted">admin / learner を切り替えて動作確認してください。</p></section>`
-    }));
+    return sendHtml(res, 200, renderLoginPage());
   }
 
   if (req.method === 'POST' && url.pathname === '/login') {
     const form = await parseFormBody(req);
-    const session = { username: String(form.get('username') ?? ''), password: String(form.get('password') ?? ''), role: String(form.get('username') ?? '') === 'admin' ? 'admin' : 'learner' };
+    const username = String(form.get('username') ?? '');
+    const password = String(form.get('password') ?? '');
+    const loginResponse = await fetch(`${apiBaseUrl}/api/auth/login`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    if (!loginResponse.ok) return sendHtml(res, 401, renderLoginPage('認証に失敗しました。認証情報または環境変数設定を確認してください。'));
+    const data = await loginResponse.json();
+    const role = data?.user?.role === 'admin' ? 'admin' : 'learner';
+    const session = { username, password, role };
     res.setHeader('Set-Cookie', buildWebSessionCookie(session));
-    return redirect(res, session.role === 'admin' ? '/admin/challenges' : '/');
+    return redirect(res, role === 'admin' ? '/admin/challenges' : '/');
   }
 
   if (req.method === 'POST' && url.pathname === '/logout') {

@@ -43,3 +43,4 @@
 - 未認証ユーザーは `/admin/*` と `/api/admin/*` へアクセスできないこと。
 - 非adminユーザーは管理機能および internal submission 情報へアクセスできないこと。
 - learner向けレスポンスに hidden tests の詳細と internal logs を含めないこと。
+- `ADMIN_PASSWORD` / `LEARNER_PASSWORD` 未設定時に既定パスワードで認証成立しないこと（`/api/auth/login`, `x-web-user` を含む）。
