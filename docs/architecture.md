@@ -59,3 +59,11 @@
 - 認証情報: `ADMIN_PASSWORD` / `LEARNER_PASSWORD` を必須化し、未設定時は `/api/auth/login` と `x-web-user` の認証を安全に失敗させる。
 - API境界: `/api/admin/*` は admin必須。`/api/submissions/:id` は learner-safe を標準とし、internal情報は admin のみ。
 - 将来拡張: `apps/api/src/auth.mjs` を差し替えることで OAuth / DB session へ移行可能。
+
+## Webログイン可用性（Issue #23）
+- Web `/login` は API 認証呼び出しを `try/catch` で保護し、`fetch failed` を未処理例外として伝播させない。
+- ステータス方針:
+  - 認証失敗: 401（認証情報の見直しを促す）
+  - API到達不能: 502（再試行を促す）
+- 目的は認証方式の刷新ではなく、MVP責務を保ったまま可用性を上げること。
+

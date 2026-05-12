@@ -74,6 +74,7 @@ pnpm build
 - review preview は `GET /api/challenges/:slug/review-preview` で確認。
 
 ## auth-ops（運用スキル）
+- `/login` の障害運用: 401（認証失敗）と 502（API到達不能）を分離し、再試行可能な文言で案内する。
 - 管理画面・管理APIのガード、ロール検証、レスポンス境界の点検手順を標準化する。
 - `ADMIN_PASSWORD` / `LEARNER_PASSWORD` を必須設定にし、未設定時は認証失敗が正しい状態として監視する。
 - DB移行時はセッションストア差し替えと監査ログ導入をセットで実施する。

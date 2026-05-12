@@ -92,6 +92,11 @@ pnpm test:smoke
 - submission導線: challenge詳細の提出フォーム → `POST /api/submissions` → 結果画面で `GET /api/submissions/:id` をポーリング
 - 状態表示: loading/empty/error/success を全画面で統一トーンにし、API失敗時も復帰可能なメッセージを表示
 
+## ログイン障害時の挙動（Issue #23）
+- `/login` は API `POST /api/auth/login` 呼び出しを例外保護し、API到達不能時もWebサーバーは継続稼働します。
+- 認証失敗（401）は「ユーザー名またはパスワードを確認」メッセージを返します。
+- 基盤障害（API停止/誤設定など）は 502 と再試行メッセージを返します。
+
 ## 認証・認可（MVP）
 - ロール: `learner`, `admin`
 - Webログイン: `/login`

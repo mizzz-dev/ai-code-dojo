@@ -3,6 +3,10 @@ import { readWebSession, buildWebSessionCookie, clearWebSessionCookie } from './
 
 const port = Number(process.env.WEB_PORT ?? 3000);
 const apiBaseUrl = process.env.API_BASE_URL ?? 'http://localhost:8080';
+const HTTP_BAD_GATEWAY = 502;
+const HTTP_UNAUTHORIZED = 401;
+const LOGIN_INVALID_MESSAGE = '認証に失敗しました。ユーザー名またはパスワードを確認してください。';
+const LOGIN_API_UNAVAILABLE_MESSAGE = '認証サービスに接続できませんでした。時間をおいて再試行してください。';
 
 const sendHtml = (res, statusCode, html) => {
   res.writeHead(statusCode, { 'content-type': 'text/html; charset=utf-8' });
@@ -114,17 +118,21 @@ const server = http.createServer(async (req, res) => {
     const form = await parseFormBody(req);
     const username = String(form.get('username') ?? '');
     const password = String(form.get('password') ?? '');
-    const loginResponse = await fetch(`${apiBaseUrl}/api/auth/login`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ username, password })
-    });
-    if (!loginResponse.ok) return sendHtml(res, 401, renderLoginPage('認証に失敗しました。認証情報または環境変数設定を確認してください。'));
-    const data = await loginResponse.json();
-    const role = data?.user?.role === 'admin' ? 'admin' : 'learner';
-    const session = { username, password, role };
-    res.setHeader('Set-Cookie', buildWebSessionCookie(session));
-    return redirect(res, role === 'admin' ? '/admin/challenges' : '/');
+    try {
+      const loginResponse = await fetch(`${apiBaseUrl}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      if (!loginResponse.ok) return sendHtml(res, HTTP_UNAUTHORIZED, renderLoginPage(LOGIN_INVALID_MESSAGE));
+      const data = await loginResponse.json();
+      const role = data?.user?.role === 'admin' ? 'admin' : 'learner';
+      const session = { username, password, role };
+      res.setHeader('Set-Cookie', buildWebSessionCookie(session));
+      return redirect(res, role === 'admin' ? '/admin/challenges' : '/');
+    } catch {
+      return sendHtml(res, HTTP_BAD_GATEWAY, renderLoginPage(LOGIN_API_UNAVAILABLE_MESSAGE));
+    }
   }
 
   if (req.method === 'POST' && url.pathname === '/logout') {
