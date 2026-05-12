@@ -72,3 +72,7 @@ pnpm build
 - reviewConfig は `prTitleTemplate`, `prBodyTemplate`, `reviewerCommentTemplates`, `focusPoints`, `language` を設定。
 - よくあるschemaエラー: unsupported language, reviewConfig必須キー欠落, visible/hidden testsの配列不備。
 - review preview は `GET /api/challenges/:slug/review-preview` で確認。
+
+## auth-ops（運用スキル）
+- 管理画面・管理APIのガード、ロール検証、レスポンス境界の点検手順を標準化する。
+- DB移行時はセッションストア差し替えと監査ログ導入をセットで実施する。

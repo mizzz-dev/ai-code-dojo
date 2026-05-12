@@ -54,3 +54,7 @@ AI生成コードのバグ修正・機能追加を学習できる練習プラッ
 - publishは `published` / `draft` の状態遷移で管理し、学習者向け公開はpublishedのみとする。
 - reviewConfig変更時は `review-preview` の表示と文言崩れを確認する。
 - hidden tests は管理系保存に限定し、学習者向けUI/APIへ露出しない。
+
+## 認証認可実装時の補足
+- 認証(authentication)と認可(authorization)を分離し、middleware/guard単位で責務分離すること。
+- learner-safe と internal のレスポンス境界を明示し、hidden tests詳細は learner へ返さないこと。

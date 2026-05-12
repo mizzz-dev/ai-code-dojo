@@ -29,7 +29,7 @@ export const createSubmissionAndEnqueue = async (body) => {
   return { data: { id: submission.id, status: submission.status }, statusCode: 201 };
 };
 
-export const getSubmissionResult = async (id) => {
+export const getSubmissionResult = async (id, auth = { role: 'guest' }) => {
   const submission = await getSubmission(id);
   if (!submission) {
     return { error: 'submissionが見つかりません。', statusCode: 404 };
@@ -51,7 +51,11 @@ export const getSubmissionResult = async (id) => {
         ? {
             status: submission.result.status,
             score: submission.result.score,
-            logs: submission.result.logs,
+            logs: auth.role === 'admin' ? submission.result.logs : undefined,
+            internal: auth.role === 'admin' ? {
+              hiddenTestResults: (submission.result?.testResults ?? []).filter((test) => test.visibility === 'hidden'),
+              fullTestResults: submission.result?.testResults ?? []
+            } : undefined,
             durationMs: submission.result.durationMs,
             visibleTests,
             hiddenTests: {
