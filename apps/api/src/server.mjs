@@ -2,6 +2,7 @@ import http from 'node:http';
 import { listChallenges, getChallengeBySlug } from './repositories/challenge-repository.mjs';
 import { createSubmissionAndEnqueue, getSubmissionResult } from './services/submission-service.mjs';
 import { listAdminChallenges, getAdminChallengeById, createAdminChallenge, createAdminChallengeVersion, setChallengePublishStatus, findPublishedChallengeBySlug } from './repositories/admin-challenge-repository.mjs';
+import { login, setSessionCookie, clearSessionCookie, getUserFromRequest } from './auth.mjs';
 
 const port = Number(process.env.API_PORT ?? 8080);
 
@@ -27,6 +28,17 @@ const buildReviewPreview = (slug, reviewConfig) => ({
   summary: (reviewConfig.focusPoints ?? []).join(' / ') || '要件を満たすための最小修正'
 });
 
+
+const forbidden = (res) => sendJson(res, 403, { error: 'forbidden' });
+const unauthorized = (res) => sendJson(res, 401, { error: 'unauthorized' });
+
+const requireRole = (req, res, role) => {
+  const user = getUserFromRequest(req);
+  if (!user) { unauthorized(res); return null; }
+  if (user.role !== role) { forbidden(res); return null; }
+  return user;
+};
+
 const parseBody = async (req) => {
   const chunks = [];
   for await (const chunk of req) chunks.push(chunk);
@@ -40,6 +52,25 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && url.pathname === '/health') {
       return sendJson(res, 200, { ok: true, service: 'api' });
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/auth/login') {
+      const body = await parseBody(req);
+      const auth = login(body?.username, body?.password);
+      if (!auth) return unauthorized(res);
+      setSessionCookie(res, auth.token);
+      return sendJson(res, 200, { user: auth.user });
+    }
+
+    if (req.method === 'POST' && url.pathname === '/api/auth/logout') {
+      clearSessionCookie(res);
+      return sendJson(res, 200, { ok: true });
+    }
+
+    if (req.method === 'GET' && url.pathname === '/api/auth/me') {
+      const user = getUserFromRequest(req);
+      if (!user) return unauthorized(res);
+      return sendJson(res, 200, { user });
     }
 
     if (req.method === 'GET' && url.pathname === '/api/challenges') {
@@ -62,11 +93,13 @@ const server = http.createServer(async (req, res) => {
 
 
     if (req.method === 'GET' && url.pathname === '/api/admin/challenges') {
+      if (!requireRole(req, res, 'admin')) return;
       const challenges = await listAdminChallenges();
       return sendJson(res, 200, { challenges });
     }
 
     if (req.method === 'GET' && url.pathname.startsWith('/api/admin/challenges/')) {
+      if (!requireRole(req, res, 'admin')) return;
       const id = url.pathname.replace('/api/admin/challenges/', '');
       const challenge = await getAdminChallengeById(id);
       if (!challenge) return sendJson(res, 404, { error: 'challengeが見つかりません。' });
@@ -74,6 +107,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && url.pathname === '/api/admin/challenges') {
+      if (!requireRole(req, res, 'admin')) return;
       const body = await parseBody(req);
       const err = validateAdminPayload(body);
       if (err) return sendJson(res, 400, { error: err });
@@ -86,6 +120,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'POST' && url.pathname.endsWith('/versions') && url.pathname.startsWith('/api/admin/challenges/')) {
+      if (!requireRole(req, res, 'admin')) return;
       const id = url.pathname.replace('/api/admin/challenges/', '').replace('/versions', '');
       const body = await parseBody(req);
       const err = validateAdminPayload({ slug: 'dummy', versionData: body?.versionData ?? body });
@@ -96,6 +131,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'PATCH' && url.pathname.endsWith('/publish') && url.pathname.startsWith('/api/admin/challenges/')) {
+      if (!requireRole(req, res, 'admin')) return;
       const id = url.pathname.replace('/api/admin/challenges/', '').replace('/publish', '');
       const body = await parseBody(req);
       const status = body?.status;
@@ -121,7 +157,8 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === 'GET' && url.pathname.startsWith('/api/submissions/')) {
       const id = url.pathname.replace('/api/submissions/', '');
-      const result = await getSubmissionResult(id);
+      const user = getUserFromRequest(req);
+      const result = await getSubmissionResult(id, { role: user?.role ?? 'guest' });
       if (result.error) return sendJson(res, result.statusCode, { error: result.error });
       return sendJson(res, result.statusCode, result.data);
     }

@@ -38,3 +38,8 @@
 - challenge の公開/非公開管理と version 追跡を必須とする。
 - hidden tests は内部保存し、学習者向けAPI/UIに露出しない。
 - reviewConfig から日本語のPRタイトル/本文/レビューコメント雛形を生成できること。
+
+## セキュリティ要件（追加）
+- 未認証ユーザーは `/admin/*` と `/api/admin/*` へアクセスできないこと。
+- 非adminユーザーは管理機能および internal submission 情報へアクセスできないこと。
+- learner向けレスポンスに hidden tests の詳細と internal logs を含めないこと。

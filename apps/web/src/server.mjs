@@ -1,4 +1,5 @@
 import http from 'node:http';
+import { readWebSession, buildWebSessionCookie, clearWebSessionCookie } from './auth.mjs';
 
 const port = Number(process.env.WEB_PORT ?? 3000);
 const apiBaseUrl = process.env.API_BASE_URL ?? 'http://localhost:8080';
@@ -18,6 +19,23 @@ const escapeHtml = (value = '') => String(value)
   .replaceAll('&', '&amp;')
   .replaceAll('<', '&lt;')
   .replaceAll('>', '&gt;');
+
+
+const redirect = (res, location) => { res.writeHead(302, { location }); res.end(); };
+const requireAdminPage = (req, res) => {
+  const user = readWebSession(req);
+  if (!user) { redirect(res, '/login?next=/admin/challenges'); return null; }
+  if (user.role !== 'admin') {
+    return sendHtml(res, 403, renderLayout({ title: '権限エラー', activePath: '/', content: renderStateCard('fail', 'admin権限が必要です。') }));
+  }
+  return user;
+};
+const apiHeadersFor = (req) => {
+  const user = readWebSession(req);
+  if (!user) return {};
+  const token = `${user.username}:${user.password}`;
+  return { 'x-web-user': token };
+};
 
 const navLinks = [
   ['/', '問題一覧'],
@@ -82,8 +100,28 @@ const safeJsonParse = (raw, fallback) => {
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
+
+  if (req.method === 'GET' && url.pathname === '/login') {
+    return sendHtml(res, 200, renderLayout({
+      title: 'ログイン', activePath: '/', content: `<section class="card"><h1>ログイン</h1><form method="POST" action="/login"><p><label>username<br><input name="username" type="text" value="learner" /></label></p><p><label>password<br><input name="password" type="text" value="learner1234" /></label></p><button class="cta" type="submit">ログイン</button></form><p class="muted">admin / learner を切り替えて動作確認してください。</p></section>`
+    }));
+  }
+
+  if (req.method === 'POST' && url.pathname === '/login') {
+    const form = await parseFormBody(req);
+    const session = { username: String(form.get('username') ?? ''), password: String(form.get('password') ?? ''), role: String(form.get('username') ?? '') === 'admin' ? 'admin' : 'learner' };
+    res.setHeader('Set-Cookie', buildWebSessionCookie(session));
+    return redirect(res, session.role === 'admin' ? '/admin/challenges' : '/');
+  }
+
+  if (req.method === 'POST' && url.pathname === '/logout') {
+    res.setHeader('Set-Cookie', clearWebSessionCookie());
+    return redirect(res, '/login');
+  }
+
   if (req.method === 'GET' && url.pathname === '/admin/challenges') {
-    const response = await fetch(`${apiBaseUrl}/api/admin/challenges`);
+    if (!requireAdminPage(req, res)) return;
+    const response = await fetch(`${apiBaseUrl}/api/admin/challenges`, { headers: apiHeadersFor(req) });
     const data = await response.json();
     const challenges = Array.isArray(data?.challenges) ? data.challenges : [];
     const rows = challenges.map((item) => `<tr><td><strong>${escapeHtml(item.slug)}</strong><br><span class="muted">${escapeHtml(item.id)}</span></td><td><span class="badge ${item.status === 'published' ? 'ok' : 'warn'}">${escapeHtml(item.status)}</span></td><td>${escapeHtml(item.updatedAt ?? item.createdAt ?? '-')}</td><td><a class="cta secondary" href="/admin/challenges/${encodeURIComponent(item.id)}">編集</a></td></tr>`).join('');
@@ -96,8 +134,9 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'GET' && url.pathname.startsWith('/admin/challenges/')) {
+    if (!requireAdminPage(req, res)) return;
     const id = decodeURIComponent(url.pathname.replace('/admin/challenges/', ''));
-    const response = await fetch(`${apiBaseUrl}/api/admin/challenges/${id}`);
+    const response = await fetch(`${apiBaseUrl}/api/admin/challenges/${id}`, { headers: apiHeadersFor(req) });
     if (response.status === 404) {
       return sendHtml(res, 404, renderLayout({ title: '管理編集', activePath: '/admin/challenges', admin: true, content: renderStateCard('warn', 'challengeが見つかりません。') }));
     }
@@ -125,17 +164,19 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'POST' && url.pathname.endsWith('/publish') && url.pathname.startsWith('/admin/challenges/')) {
+    if (!requireAdminPage(req, res)) return;
     const id = url.pathname.replace('/admin/challenges/', '').replace('/publish', '');
     const form = await parseFormBody(req);
-    await fetch(`${apiBaseUrl}/api/admin/challenges/${id}/publish`, { method: 'PATCH', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ status: form.get('status') }) });
+    await fetch(`${apiBaseUrl}/api/admin/challenges/${id}/publish`, { method: 'PATCH', headers: { ...apiHeadersFor(req), 'content-type': 'application/json' }, body: JSON.stringify({ status: form.get('status') }) });
     res.writeHead(302, { location: `/admin/challenges/${id}` });
     return res.end();
   }
 
   if (req.method === 'POST' && url.pathname.endsWith('/versions') && url.pathname.startsWith('/admin/challenges/')) {
+    if (!requireAdminPage(req, res)) return;
     const id = url.pathname.replace('/admin/challenges/', '').replace('/versions', '');
     const form = await parseFormBody(req);
-    const detailRes = await fetch(`${apiBaseUrl}/api/admin/challenges/${id}`);
+    const detailRes = await fetch(`${apiBaseUrl}/api/admin/challenges/${id}`, { headers: apiHeadersFor(req) });
     const data = await detailRes.json();
     const base = data.challenge.versions?.[0] ?? {};
     const versionData = {
@@ -147,7 +188,7 @@ const server = http.createServer(async (req, res) => {
       id: undefined,
       version: undefined
     };
-    await fetch(`${apiBaseUrl}/api/admin/challenges/${id}/versions`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ versionData }) });
+    await fetch(`${apiBaseUrl}/api/admin/challenges/${id}/versions`, { method: 'POST', headers: { ...apiHeadersFor(req), 'content-type': 'application/json' }, body: JSON.stringify({ versionData }) });
     res.writeHead(302, { location: `/admin/challenges/${id}` });
     return res.end();
   }
@@ -273,7 +314,7 @@ const server = http.createServer(async (req, res) => {
         <p><strong>実行時間:</strong> ${submission.result.durationMs}ms</p>
         <h3>visible tests</h3><ul>${submission.result.visibleTests.map((test) => `<li>${escapeHtml(test.testId)}: ${test.passed ? 'pass' : 'fail'} (${test.durationMs}ms)</li>`).join('')}</ul>
         <h3>hidden tests</h3><p>passed ${submission.result.hiddenTests.passedCount}/${submission.result.hiddenTests.total}</p>
-        <h3>ログ</h3><pre>${escapeHtml((submission.result.logs ?? []).join('\n\n'))}</pre>
+        <h3>ログ</h3><pre>${escapeHtml(((submission.result.logs ?? ['(internal logsはadminのみ表示)']).join('\n\n')))}</pre>
         <p><a class="cta secondary" href="/progress">進捗へ</a></p></section>`
       })
     );

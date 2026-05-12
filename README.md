@@ -91,3 +91,11 @@ pnpm test:smoke
 - 新UI適用ルート: `/`, `/challenges/:slug`, `/submissions/:id`, `/progress`, `/dashboard`
 - submission導線: challenge詳細の提出フォーム → `POST /api/submissions` → 結果画面で `GET /api/submissions/:id` をポーリング
 - 状態表示: loading/empty/error/success を全画面で統一トーンにし、API失敗時も復帰可能なメッセージを表示
+
+## 認証・認可（MVP）
+- ロール: `learner`, `admin`
+- Webログイン: `/login`
+- 保護対象:
+  - Web: `/admin/challenges`, `/admin/challenges/:id`
+  - API: `/api/admin/*`
+- 提出結果APIは learner-safe をデフォルト返却し、internal情報は admin のみ参照可能。
