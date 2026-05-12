@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from 'react';
 export type Status = 'success' | 'warning' | 'fail' | 'info';
 
 export function PageContainer({ children }: { children: ReactNode }) {
-  return <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'var(--spacing-6)' }}>{children}</div>;
+  return <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(var(--spacing-3), 3vw, var(--spacing-6))' }}>{children}</div>;
 }
 
 const buttonVariantStyles: Record<'primary' | 'secondary' | 'ghost', CSSProperties> = {
@@ -14,11 +14,11 @@ const buttonVariantStyles: Record<'primary' | 'secondary' | 'ghost', CSSProperti
 
 export function Button({ children, variant = 'primary', size = 'md', disabled }: { children: ReactNode; variant?: 'primary' | 'secondary' | 'ghost'; size?: 'sm' | 'md' | 'lg'; disabled?: boolean }) {
   const paddingBySize = size === 'sm' ? 'var(--spacing-2) var(--spacing-3)' : size === 'lg' ? 'var(--spacing-4) var(--spacing-6)' : 'var(--spacing-3) var(--spacing-4)';
-  return <button disabled={disabled} data-variant={variant} style={{ ...buttonVariantStyles[variant], borderRadius: 'var(--radius-pill)', padding: paddingBySize, fontWeight: 'var(--font-weight-semibold)', transition: `all var(--motion-base) var(--easing-standard)`, opacity: disabled ? 0.55 : 1 }}>{children}</button>;
+  return <button disabled={disabled} data-variant={variant} style={{ ...buttonVariantStyles[variant], borderRadius: 'var(--radius-pill)', padding: paddingBySize, minHeight: 44, minWidth: 44, fontWeight: 'var(--font-weight-semibold)', lineHeight: 1.4, transition: `all var(--motion-base) var(--easing-standard)`, opacity: disabled ? 0.55 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}>{children}</button>;
 }
 
 export function Card({ children, tone = 'default' }: { children: ReactNode; tone?: 'default' | 'soft' }) {
-  return <section style={{ background: tone === 'soft' ? 'var(--color-surface-soft)' : 'var(--gradient-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: 'var(--spacing-4)' }}>{children}</section>;
+  return <section style={{ background: tone === 'soft' ? 'var(--color-surface-soft)' : 'var(--gradient-surface)', border: '1px solid var(--color-border)', borderRadius: 'var(--radius-lg)', boxShadow: 'var(--shadow-sm)', padding: 'clamp(var(--spacing-3), 2vw, var(--spacing-4))' }}>{children}</section>;
 }
 
 export function Badge({ label, status = 'info' }: { label: string; status?: Status }) {
@@ -36,7 +36,7 @@ export function StatCard({ label, value, trend }: { label: string; value: string
 
 export function ProgressRing({ progress }: { progress: number }) {
   const clamped = Math.min(100, Math.max(0, progress));
-  return <div role="img" aria-label={`progress ${clamped}%`} style={{ width: 88, height: 88, borderRadius: '50%', border: `8px solid var(--color-bg-elevated)`, borderTopColor: 'var(--color-primary)', display: 'grid', placeItems: 'center' }}>{clamped}%</div>;
+  return <div role="img" aria-label={`progress ${clamped}%`} style={{ width: 88, height: 88, borderRadius: '50%', border: `8px solid var(--color-bg-elevated)`, borderTopColor: 'var(--color-primary)', display: 'grid', placeItems: 'center', fontWeight: 'var(--font-weight-semibold)' }}>{clamped}%</div>;
 }
 
 export function MascotHintCard({ hint, mascot = '💡' }: { hint: string; mascot?: string }) {
@@ -50,4 +50,3 @@ export function ReviewPreviewCard({ title, excerpt, reviewedAt, score }: { title
 export function ResultSummaryCard({ title, status, description }: { title: string; status: Status; description: string }) {
   return <Card><Badge label={status} status={status} /><h3>{title}</h3><p>{description}</p></Card>;
 }
-

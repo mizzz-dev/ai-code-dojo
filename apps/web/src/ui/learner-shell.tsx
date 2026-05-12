@@ -111,9 +111,9 @@ function StatusStatesSection() {
     <Card>
       <SectionTitle title="loading / empty / error" description="API応答が不安定でも画面が破綻しない状態設計です。" />
       <div style={{ display: 'grid', gap: 'var(--spacing-3)' }}>
-        <Card tone="soft"><Badge label="loading" status="info" /> <p>提出結果を取得しています…</p></Card>
+        <Card tone="soft"><Badge label="loading" status="info" /> <p aria-live="polite">提出結果を取得しています…</p></Card>
         <Card tone="soft"><Badge label="empty" status="warning" /> <p>提出履歴はまだありません。最初の1問を解いてみましょう。</p></Card>
-        <Card tone="soft"><Badge label="error" status="fail" /> <p>通信エラーが発生しました。時間をおいて再試行してください。</p><Button variant="secondary" size="sm">再試行</Button></Card>
+        <Card tone="soft"><Badge label="error" status="fail" /> <p role="alert">通信エラーが発生しました。時間をおいて再試行してください。</p><Button variant="secondary" size="sm">再試行</Button></Card>
       </div>
     </Card>
   );
@@ -133,7 +133,7 @@ export function LearnerAppShellPreview() {
             <ChallengeFlowSection />
             <ResultAndProgressSection />
             <StatusStatesSection />
-            <MascotHintCard hint="Mascot / XP / streak は補助情報として、CTAの視認性を優先して配置しています。" />
+            <MascotHintCard hint="Mascot / XP / streak は補助情報として扱い、達成演出は短く、主要CTAを常に先に読める配置にしています。" />
           </div>
         }
       />
