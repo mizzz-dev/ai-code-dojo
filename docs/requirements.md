@@ -1,5 +1,8 @@
 # requirements（MVP縦切り版）
 
+> この文書は要件定義です。全体像・現況・進行中課題の正本は `docs/project-overview.md` / `docs/current-status.md` / `docs/active-issues.md` を参照してください。
+
+
 ## 1. 今回の達成範囲
 - 問題一覧表示
 - 問題詳細表示

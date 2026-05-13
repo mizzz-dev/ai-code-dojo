@@ -1,5 +1,8 @@
 # architecture（MVP縦切り実装）
 
+> この文書は実装詳細の補足です。システム概観の正本は `docs/architecture/system-overview.md` を参照してください。
+
+
 ## challenge 読み込み方式
 - `apps/api/src/repositories/challenge-repository.mjs` で `problems/examples/*/problem.json` をファイルベースで読み込む。
 - 返却モデルは API レイヤで使う最小DTO（一覧用 summary / 詳細）に分ける。
