@@ -17,8 +17,8 @@
 - 実装は最小差分で責務分離を優先
 
 ## 3. 今回の実装方式
-- challenge: ファイルベース repository
-- submission: ローカルJSONファイル
+- challenge: SQLite repository（challenges/challenge_versions）
+- submission: SQLite repository（submissions）
 - queue: Worker HTTP endpoint（簡易）
 - runner: JavaScript向け最小実装（`node --test`）
 
@@ -29,7 +29,7 @@
 - 高度な運用監視
 
 ## 5. 要確認（次フェーズ）
-- DBの正式採用（PostgreSQL等）
+- SQLite→PostgreSQL 移行計画（dialect差し替え）
 - queueの正式採用（Redis/SQS等）
 - セキュアな分離実行基盤（container/job）
 - hidden tests 管理運用（暗号化・アクセス制御）

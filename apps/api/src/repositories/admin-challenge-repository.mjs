@@ -1,80 +1,87 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import { randomUUID } from 'node:crypto';
-
-const DATA_DIR = path.resolve(process.cwd(), 'apps/api/data');
-const STORE_PATH = path.join(DATA_DIR, 'challenges-admin.json');
+import { getDb } from '../db/database.mjs';
 
 const now = () => new Date().toISOString();
 
-const defaultStore = { challenges: [], challengeVersions: [] };
+const mapChallengeRow = (row) => ({
+  id: row.id,
+  slug: row.slug,
+  status: row.status,
+  currentVersionId: row.current_version_id,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at
+});
 
-const ensureStore = async () => {
-  await mkdir(DATA_DIR, { recursive: true });
-  try {
-    const raw = await readFile(STORE_PATH, 'utf8');
-    return JSON.parse(raw);
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      await writeFile(STORE_PATH, JSON.stringify(defaultStore, null, 2));
-      return structuredClone(defaultStore);
-    }
-    throw error;
-  }
+const mapVersionRow = (row) => ({
+  id: row.id,
+  challengeId: row.challenge_id,
+  version: row.version,
+  createdAt: row.created_at,
+  ...JSON.parse(row.payload_json)
+});
+
+export const listAdminChallenges = async () => {
+  const rows = getDb().prepare('SELECT * FROM challenges ORDER BY updated_at DESC').all();
+  return rows.map(mapChallengeRow);
 };
 
-const saveStore = async (store) => writeFile(STORE_PATH, JSON.stringify(store, null, 2));
-
-export const listAdminChallenges = async () => (await ensureStore()).challenges;
-
 export const getAdminChallengeById = async (id) => {
-  const store = await ensureStore();
-  const challenge = store.challenges.find((item) => item.id === id);
-  if (!challenge) return null;
-  const versions = store.challengeVersions.filter((v) => v.challengeId === id).sort((a, b) => b.version - a.version);
-  return { ...challenge, versions };
+  const database = getDb();
+  const challengeRow = database.prepare('SELECT * FROM challenges WHERE id = ?').get(id);
+  if (!challengeRow) return null;
+  const versionRows = database.prepare('SELECT * FROM challenge_versions WHERE challenge_id = ? ORDER BY version DESC').all(id);
+  return { ...mapChallengeRow(challengeRow), versions: versionRows.map(mapVersionRow) };
 };
 
 export const createAdminChallenge = async (payload) => {
-  const store = await ensureStore();
-  if (store.challenges.some((item) => item.slug === payload.slug)) throw new Error('slug already exists');
+  const database = getDb();
+  const existing = database.prepare('SELECT id FROM challenges WHERE slug = ?').get(payload.slug);
+  if (existing) throw new Error('slug already exists');
+
   const challengeId = randomUUID();
   const versionId = randomUUID();
   const createdAt = now();
-  store.challenges.push({ id: challengeId, slug: payload.slug, status: 'draft', currentVersionId: versionId, createdAt, updatedAt: createdAt });
-  store.challengeVersions.push({ id: versionId, challengeId, version: 1, createdAt, ...payload.versionData });
-  await saveStore(store);
+
+  database.prepare('INSERT INTO challenges (id, slug, status, current_version_id, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)')
+    .run(challengeId, payload.slug, 'draft', versionId, createdAt, createdAt);
+  database.prepare('INSERT INTO challenge_versions (id, challenge_id, version, created_at, payload_json) VALUES (?, ?, ?, ?, ?)')
+    .run(versionId, challengeId, 1, createdAt, JSON.stringify(payload.versionData));
+
   return { challengeId, versionId };
 };
 
 export const createAdminChallengeVersion = async (challengeId, versionData) => {
-  const store = await ensureStore();
-  const challenge = store.challenges.find((item) => item.id === challengeId);
+  const database = getDb();
+  const challenge = database.prepare('SELECT id FROM challenges WHERE id = ?').get(challengeId);
   if (!challenge) return null;
-  const current = store.challengeVersions.filter((v) => v.challengeId === challengeId);
-  const version = current.length ? Math.max(...current.map((v) => v.version)) + 1 : 1;
+
+  const row = database.prepare('SELECT COALESCE(MAX(version), 0) AS version FROM challenge_versions WHERE challenge_id = ?').get(challengeId);
+  const version = Number(row.version) + 1;
   const id = randomUUID();
-  store.challengeVersions.push({ id, challengeId, version, createdAt: now(), ...versionData });
-  challenge.currentVersionId = id;
-  challenge.updatedAt = now();
-  await saveStore(store);
+  const updatedAt = now();
+
+  database.prepare('INSERT INTO challenge_versions (id, challenge_id, version, created_at, payload_json) VALUES (?, ?, ?, ?, ?)')
+    .run(id, challengeId, version, updatedAt, JSON.stringify(versionData));
+  database.prepare('UPDATE challenges SET current_version_id = ?, updated_at = ? WHERE id = ?')
+    .run(id, updatedAt, challengeId);
+
   return id;
 };
 
 export const setChallengePublishStatus = async (challengeId, status) => {
-  const store = await ensureStore();
-  const challenge = store.challenges.find((item) => item.id === challengeId);
-  if (!challenge) return null;
-  challenge.status = status;
-  challenge.updatedAt = now();
-  await saveStore(store);
-  return challenge;
+  const database = getDb();
+  const updatedAt = now();
+  const result = database.prepare('UPDATE challenges SET status = ?, updated_at = ? WHERE id = ?').run(status, updatedAt, challengeId);
+  if (result.changes === 0) return null;
+  const row = database.prepare('SELECT * FROM challenges WHERE id = ?').get(challengeId);
+  return mapChallengeRow(row);
 };
 
 export const findPublishedChallengeBySlug = async (slug) => {
-  const store = await ensureStore();
-  const challenge = store.challenges.find((item) => item.slug === slug && item.status === 'published');
-  if (!challenge) return null;
-  const version = store.challengeVersions.find((item) => item.id === challenge.currentVersionId);
-  return version ? { challenge, version } : null;
+  const database = getDb();
+  const challengeRow = database.prepare("SELECT * FROM challenges WHERE slug = ? AND status = 'published'").get(slug);
+  if (!challengeRow) return null;
+  const versionRow = database.prepare('SELECT * FROM challenge_versions WHERE id = ?').get(challengeRow.current_version_id);
+  if (!versionRow) return null;
+  return { challenge: mapChallengeRow(challengeRow), version: mapVersionRow(versionRow) };
 };

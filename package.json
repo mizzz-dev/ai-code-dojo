@@ -13,7 +13,9 @@
     "dev:api": "node apps/api/src/server.mjs",
     "dev:worker": "node apps/worker/src/server.mjs",
     "dev:web": "node apps/web/src/server.mjs",
-    "test:smoke": "node --test tests/smoke/**/*.test.mjs"
+    "test:smoke": "node --test tests/smoke/**/*.test.mjs",
+    "db:migrate": "node scripts/db-migrate.mjs",
+    "db:seed": "node scripts/db-seed.mjs"
   },
   "packageManager": "pnpm@10.13.1"
 }

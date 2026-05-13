@@ -78,3 +78,9 @@ pnpm build
 - 管理画面・管理APIのガード、ロール検証、レスポンス境界の点検手順を標準化する。
 - `ADMIN_PASSWORD` / `LEARNER_PASSWORD` を必須設定にし、未設定時は認証失敗が正しい状態として監視する。
 - DB移行時はセッションストア差し替えと監査ログ導入をセットで実施する。
+
+
+## DB移行後の運用メモ（Issue #27）
+- `pnpm db:migrate` で `challenges/challenge_versions/submissions` テーブルを作成する。
+- `pnpm db:seed` は空DBのみ初期challengeを投入する。
+- 旧JSONが存在する場合、API初回起動時にSQLiteへ自動移行される。

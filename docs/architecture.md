@@ -7,7 +7,7 @@
 
 ## submission フロー
 1. Web が `POST /api/submissions` を呼ぶ
-2. API は submission を `.data/submissions.json` に保存（status=queued）
+2. API は submission を SQLite（`.data/app.db`）に保存（status=queued）
 3. API は Worker `/jobs` へ `submissionId` を送る
 4. Worker が status=running に更新
 5. Worker が runner を呼んで visible/hidden tests 実行
@@ -38,7 +38,7 @@
 ## 簡易実装と今後の安全な分離実行への移行ポイント
 ### 今回の簡易実装
 - Workerプロセスで `node --test` を起動する簡易方式
-- ストレージは `.data/submissions.json`（ローカルファイル）
+- ストレージは `.data/app.db`（SQLite）
 - キューは Worker HTTP endpoint + `setImmediate` で代替
 
 ### 今後の移行ポイント
@@ -48,7 +48,7 @@
 - artifact 保存先をオブジェクトストレージへ移行
 
 ## challenge repository / versioning
-- 管理機能は `apps/api/src/repositories/admin-challenge-repository.mjs` でファイル保存（将来DB移行しやすいRepository層）を採用。
+- 管理機能は `apps/api/src/repositories/admin-challenge-repository.mjs` から SQLite 永続化へ移行。Repository契約は維持。
 - `challenges` は公開状態とcurrentVersion参照のみを持ち、実体は `challenge_versions` に分離。
 - admin API と learner API を分離し、hiddenTestsはlearner向けレスポンスに含めない。
 - review preview は `reviewConfig` テンプレートを利用する生成層で実装し、将来AI生成に差し替え可能。

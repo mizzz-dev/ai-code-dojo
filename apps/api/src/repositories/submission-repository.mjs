@@ -1,61 +1,55 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import path from 'node:path';
 import crypto from 'node:crypto';
+import { getDb } from '../db/database.mjs';
 
-const DATA_DIR = path.resolve(process.cwd(), '.data');
-const SUBMISSIONS_PATH = path.join(DATA_DIR, 'submissions.json');
+const now = () => new Date().toISOString();
 
-const ensureStore = async () => {
-  await mkdir(DATA_DIR, { recursive: true });
-  try {
-    await readFile(SUBMISSIONS_PATH, 'utf8');
-  } catch {
-    await writeFile(SUBMISSIONS_PATH, '[]', 'utf8');
-  }
-};
-
-const loadStore = async () => {
-  await ensureStore();
-  return JSON.parse(await readFile(SUBMISSIONS_PATH, 'utf8'));
-};
-
-const saveStore = async (submissions) => {
-  await writeFile(SUBMISSIONS_PATH, JSON.stringify(submissions, null, 2), 'utf8');
-};
+const mapRow = (row) => ({
+  id: row.id,
+  challengeSlug: row.challenge_slug,
+  language: row.language,
+  code: row.code,
+  status: row.status,
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+  result: row.result_json ? JSON.parse(row.result_json) : null
+});
 
 export const createSubmission = async (input) => {
-  const submissions = await loadStore();
-  const newSubmission = {
+  const timestamp = now();
+  const submission = {
     id: crypto.randomUUID(),
     challengeSlug: input.challengeSlug,
     language: input.language,
     code: input.code,
     status: 'queued',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    createdAt: timestamp,
+    updatedAt: timestamp,
     result: null
   };
 
-  submissions.push(newSubmission);
-  await saveStore(submissions);
-  return newSubmission;
+  getDb().prepare('INSERT INTO submissions (id, challenge_slug, language, code, status, created_at, updated_at, result_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(submission.id, submission.challengeSlug, submission.language, submission.code, submission.status, submission.createdAt, submission.updatedAt, null);
+
+  return submission;
 };
 
 export const getSubmission = async (id) => {
-  const submissions = await loadStore();
-  return submissions.find((submission) => submission.id === id) ?? null;
+  const row = getDb().prepare('SELECT * FROM submissions WHERE id = ?').get(id);
+  return row ? mapRow(row) : null;
 };
 
 export const updateSubmission = async (id, patch) => {
-  const submissions = await loadStore();
-  const index = submissions.findIndex((submission) => submission.id === id);
-  if (index < 0) return null;
+  const current = await getSubmission(id);
+  if (!current) return null;
 
-  submissions[index] = {
-    ...submissions[index],
+  const updated = {
+    ...current,
     ...patch,
-    updatedAt: new Date().toISOString()
+    updatedAt: now()
   };
-  await saveStore(submissions);
-  return submissions[index];
+
+  getDb().prepare('UPDATE submissions SET challenge_slug = ?, language = ?, code = ?, status = ?, updated_at = ?, result_json = ? WHERE id = ?')
+    .run(updated.challengeSlug, updated.language, updated.code, updated.status, updated.updatedAt, updated.result ? JSON.stringify(updated.result) : null, id);
+
+  return updated;
 };
