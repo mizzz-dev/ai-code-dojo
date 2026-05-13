@@ -105,3 +105,9 @@ pnpm test:smoke
   - Web: `/admin/challenges`, `/admin/challenges/:id`
   - API: `/api/admin/*`
 - 提出結果APIは learner-safe をデフォルト返却し、internal情報は admin のみ参照可能。
+
+
+## DB運用（Issue #27）
+- challenge / challenge_versions / submissions は SQLite（`.data/app.db`）へ保存されます。
+- 旧JSON（`apps/api/data/challenges-admin.json`, `.data/submissions.json`）がある場合、初回起動時に自動移行します。
+- 明示的に実行する場合は `pnpm db:migrate` / `pnpm db:seed` を使います。

@@ -17,12 +17,17 @@ const basePayload = {
   }
 };
 
-test('publish/unpublish state transition', async () => {
+test('challenge create/version/publish persists in db', async () => {
   const dir = await mkdtemp(path.join(tmpdir(), 'dojo-'));
   const prev = process.cwd();
   process.chdir(dir);
   const repo = await import('../../apps/api/src/repositories/admin-challenge-repository.mjs');
   const created = await repo.createAdminChallenge(basePayload);
+  const versionId = await repo.createAdminChallengeVersion(created.challengeId, basePayload.versionData);
+  assert.ok(versionId);
+  const detail = await repo.getAdminChallengeById(created.challengeId);
+  assert.equal(detail.versions.length, 2);
+
   const pub = await repo.setChallengePublishStatus(created.challengeId, 'published');
   assert.equal(pub.status, 'published');
   const draft = await repo.setChallengePublishStatus(created.challengeId, 'draft');
