@@ -1,5 +1,8 @@
 # skills.md
 
+> 運用手順の詳細は本書を参照し、プロジェクト現況の正本は `docs/current-status.md` と `docs/active-issues.md` を参照してください。
+
+
 ## このプロダクトの目的
 ai-code-dojo は、AI生成コードに対する **読解・修正・テスト・PR作成** の実務フローを学習するための基盤です。
 

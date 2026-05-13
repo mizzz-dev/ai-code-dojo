@@ -25,6 +25,29 @@ ai-code-dojo は、**AI生成コードのバグ修正・機能追加を実務フ
 - `packages/runner-sdk`: runner interface / normalize
 - `problems/examples`: サンプル問題
 
+
+## 正本ドキュメント（Canonical Source）
+- システム概要: `docs/project-overview.md`
+- 現在状態: `docs/current-status.md`
+- 進行中Issue: `docs/active-issues.md`
+- アーキテクチャ概観: `docs/architecture/system-overview.md`
+- 作業ログ: `docs/logs/`
+- AI prompts: `docs/ai-prompts/`
+- ADR: `docs/adr/`
+- 進捗レポート: `docs/reports/`
+- リスク: `docs/risks/`
+- runbook: `docs/runbooks/`
+
+## docsの役割分担
+- `README.md`: 初回導線と起動手順
+- `docs/project-overview.md`: 全体像と正本ルール
+- `docs/current-status.md`: 現況スナップショット
+- `docs/active-issues.md`: 進行中課題と優先順位
+- `docs/architecture/system-overview.md`: 構成概観
+- `docs/architecture.md`: 実装詳細・補足
+- `docs/requirements.md`: 要件定義
+- `skills.md`: 運用スキル/作業手順
+
 ## ローカル起動方法
 ```bash
 pnpm install
