@@ -12,15 +12,19 @@
 
 ## 進行中Issue
 
-- 現在、P0/P1の進行中Issueはなし（2026-05-14 時点）。
+- #37 Runner安全性レビュー
+  - 優先度: P1
+  - 状態: Open（GitHub Issue #37）
+  - 位置づけ: 現行Runnerの簡易実行前提を点検し、隔離強化へ向けた安全性レビューを進める。
+  - 非目的（このIssueでは実施しない）: runner/Worker実装修正、採点ロジック変更、hidden tests仕様変更。
 
 ## Recently Completed
 
-### #37 Source of Truth再整合（docs是正）
+### #41 Source of Truth再整合（Issue #37の意味付け是正）
 - 優先度: P1
 - 状態: 完了
 - 完了日: 2026-05-14
-- 成果物: `docs/current-status.md` / `docs/active-issues.md` からスコープ外記述を除去し、正本docsの整合を回復。
+- 成果物: `docs/current-status.md` / `docs/active-issues.md` の #37 記述を GitHub 正本（Runner安全性レビュー）に再整合。
 
 
 ### #14 Source of Truth同期漏れの是正
