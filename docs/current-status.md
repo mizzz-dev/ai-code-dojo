@@ -41,3 +41,4 @@
 - 進行中Issue: `docs/active-issues.md`
 - 構成概観: `docs/architecture/system-overview.md`
 - 全体方針: `docs/project-overview.md`
+- 作業ログ運用: `docs/logs/README.md`
