@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-13
+最終更新: 2026-05-14
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -12,19 +12,27 @@
 
 ## 進行中Issue
 
-### #29 Repository整備（本件）
+### #33 docs同期運用の整備（本件）
 - 優先度: P1
-- 状態: 進行中（正本docs整備）
-- 目的: 会話非依存で現状把握できるリポジトリへ移行
-- 成果物: `project-overview` / `current-status` / `active-issues` / `system-overview` と docs骨格
-- 要確認: 既存docsの重複統合方針（段階的移行）
+- 状態: 進行中
+- 目的: `current-status` / `active-issues` を現状へ同期し、Issue / PR 完了後に stale 化しない運用ルールを明文化する。
+- 成果物: `docs/current-status.md` と `docs/active-issues.md` の同期更新、必要に応じた docs 運用READMEの追記。
+- 非目的: runner/Worker/採点ロジック、auth/admin、DB schema/migration、hidden tests仕様の変更。
+- 依存関係: #29 / #31 の正本化成果を前提として更新する。
+
+## 完了済みIssue（直近）
+
+### #29 Repository整備（正本docs骨格）
+- 優先度: P1
+- 状態: 完了
+- 完了日: 2026-05-13
+- 成果物: `project-overview` / `current-status` / `active-issues` / `system-overview` と docs骨格の整備。
 
 ### #31 Repository整備（docs/logs 正本化）
 - 優先度: P2
-- 状態: 進行中
-- 目的: `docs/logs/` の実体化とログ運用導線の確立
-- 成果物: `docs/logs/README.md` と関連docsの最小導線修正
-- 依存関係: #29 で定義した Canonical Source Rules
+- 状態: 完了
+- 完了日: 2026-05-14
+- 成果物: `docs/logs/README.md` の整備と関連docs導線の確立。
 
 ## 継続監視トピック
 - 実行隔離の強化（簡易Runnerからの移行）
@@ -32,7 +40,14 @@
 - SQLiteから将来RDBへの移行計画
 - hidden tests保護運用の監査強化
 
-## 更新ルール
-- Issue完了時: 状態を「完了」に更新し、必要なら `docs/reports/` へ成果サマリを移管
-- 新規Issue追加時: 優先度・背景・依存関係・非目的を明記
-- 週次見直し: 優先度と着手順の棚卸しを実施
+## 更新ルール（stale防止）
+1. **Issue完了時（必須）**
+   - `進行中Issue` から対象Issueを削除し、`完了済みIssue（直近）` へ移動する。
+   - 同時に `docs/current-status.md` の `直近完了事項` と `優先順位（直近）` を更新する。
+2. **PRマージ時（必須）**
+   - 変更対象が docs 正本に関わる場合、PR本文チェックリストに `current-status/active-issues同期` を含める。
+   - 必要に応じて `docs/logs/` へ実施ログを追記し、恒久ルール化が必要なら `docs/runbooks/` へ移管する。
+3. **新規Issue追加時（必須）**
+   - 優先度・背景・依存関係・非目的を明記し、重複Issueがないか確認する。
+4. **週次見直し（推奨）**
+   - 優先度と着手順を棚卸しし、`進行中Issue` の状態表記を更新する。
