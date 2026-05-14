@@ -19,6 +19,13 @@
 - 成果物: `project-overview` / `current-status` / `active-issues` / `system-overview` と docs骨格
 - 要確認: 既存docsの重複統合方針（段階的移行）
 
+### #31 Repository整備（docs/logs 正本化）
+- 優先度: P2
+- 状態: 進行中
+- 目的: `docs/logs/` の実体化とログ運用導線の確立
+- 成果物: `docs/logs/README.md` と関連docsの最小導線修正
+- 依存関係: #29 で定義した Canonical Source Rules
+
 ## 継続監視トピック
 - 実行隔離の強化（簡易Runnerからの移行）
 - queueの本格運用方式
