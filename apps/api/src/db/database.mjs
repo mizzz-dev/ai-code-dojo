@@ -1,4 +1,4 @@
-import { DatabaseSync } from 'node:sqlite';
+import Database from 'better-sqlite3';
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -94,7 +94,7 @@ const migrateLegacyJsonIfNeeded = (database) => {
 export const getDb = () => {
   if (db) return db;
   ensureDataDir();
-  db = new DatabaseSync(DB_PATH);
+  db = new Database(DB_PATH);
   migrateSchema(db);
   migrateLegacyJsonIfNeeded(db);
   return db;
