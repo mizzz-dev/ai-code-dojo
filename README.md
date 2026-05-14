@@ -134,3 +134,31 @@ pnpm test:smoke
 - challenge / challenge_versions / submissions は SQLite（`.data/app.db`）へ保存されます。
 - 旧JSON（`apps/api/data/challenges-admin.json`, `.data/submissions.json`）がある場合、初回起動時に自動移行します。
 - 明示的に実行する場合は `pnpm db:migrate` / `pnpm db:seed` を使います。
+
+## AI開発プロトコル
+
+ai-code-dojoでは、AIエージェントと人間が継続的に協調できるよう、
+AI Native Development Protocol を導入しています。
+
+詳細は以下を参照してください。
+
+- [AI Protocol README](docs/ai-protocol/README.md)
+- [AI向けPROMPT](docs/ai-protocol/PROMPT.md)
+- [導入・運用ガイド](docs/ai-protocol/adoption-guide.md)
+- [ai-code-dojo固有ポリシー](docs/ai-protocol/ai-code-dojo-specific-policy.md)
+
+### 運用方針
+
+- PR本文は日本語
+- Issue本文・コメントは日本語
+- Discussion本文・コメントは日本語
+- commit messageは日本語
+- 作業ログはRepositoryへ保存
+- AIプロンプトログはRepositoryへ保存
+- 重要判断はADRへ保存
+- merge後は不要branch削除を確認
+
+### ai-code-dojo固有の重要方針
+
+ai-code-dojoは提出コード、採点Worker、visible/hidden tests、管理API、学習者データを扱うため、
+runner安全性、hidden tests秘匿、認証・認可、DB運用、ログの秘匿範囲を重視します。
