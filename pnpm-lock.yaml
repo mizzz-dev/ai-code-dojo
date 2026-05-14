@@ -30,3 +30,4 @@ packages:
     engines: {node: '>=14.0.0'}
     requiresBuild: true
     optional: true
+    optionalDependencies: {}
