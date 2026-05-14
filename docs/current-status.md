@@ -1,6 +1,6 @@
 # current-status（正本）
 
-最終更新: 2026-05-13
+最終更新: 2026-05-14
 
 ## この文書の目的
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
@@ -11,19 +11,25 @@
 - ログイン可用性改善（401/502の分離）は実装済み。
 - challenge/submission は SQLite 永続化へ移行済み。
 - challenge version 管理と publish 状態遷移が運用可能。
+- docs正本（`project-overview` / `current-status` / `active-issues` / `system-overview`）および `docs/logs/` の基盤整備は完了。
 
 ## 稼働中の基盤
 - 採点は Worker 経由の非同期処理。
+- API本体で提出コードを直接実行しない。
 - visible/hidden tests は分離運用。
 - hidden tests 詳細は learner-safe レスポンスで非公開。
 
+## 直近完了事項
+- Issue #29: Repository整備（正本docs骨格の整備）完了。
+- Issue #31: `docs/logs/` 正本化と運用導線の整備完了。
+
 ## 既知問題（詳細は active-issues を参照）
-- 本番隔離実行基盤は未整備（簡易実行方式）。
+- 本番隔離実行基盤は未整備（現行Runnerは簡易実行）。
 - queue とDBは将来の本格運用を見据えた移行余地あり。
-- docs正本運用は本Issueで整備開始（継続更新が必要）。
+- Issue/PR 完了時の docs 同期運用は、更新漏れ防止ルールの定着が必要。
 
 ## 優先順位（直近）
-1. 正本docsの継続運用定着
+1. 正本docsの継続運用定着（Issue/PR完了時の同期ルール徹底）
 2. テスト安定化と運用ドキュメント拡充
 3. 実行隔離・キュー・DBの段階的強化
 
