@@ -12,23 +12,16 @@
 
 ## 進行中Issue
 
-### #33 docs同期運用の整備（本件）
-- 優先度: P1
-- 状態: 進行中
-- 目的: `current-status` / `active-issues` を現状へ同期し、Issue / PR 完了後に stale 化しない運用ルールを明文化する。
-- 成果物: `docs/current-status.md` と `docs/active-issues.md` の同期更新、必要に応じた docs 運用READMEの追記。
-- 非目的: runner/Worker/採点ロジック、auth/admin、DB schema/migration、hidden tests仕様の変更。
-- 依存関係: #29 / #31 の正本化成果を前提として更新する。
-
-### 高リスク領域の次Issue候補（要件定義フェーズ）
-- 優先度: P1
-- 状態: 候補整理中
-- 候補A: 位置情報・走行履歴のデータ分類と保持期間の要件整理
-- 候補B: 交通情報・オービス情報の出典管理と表示責務の整理
-- 候補C: 画像投稿・コミュニティ機能における違反報告/監査ログ境界の整理
-- 注意: 本Issueでは仕様追加を行わず、次Issueの論点整理のみを対象とする。
+- 現在、P0/P1の進行中Issueはなし（2026-05-14 時点）。
 
 ## Recently Completed
+
+### #37 Source of Truth再整合（docs是正）
+- 優先度: P1
+- 状態: 完了
+- 完了日: 2026-05-14
+- 成果物: `docs/current-status.md` / `docs/active-issues.md` からスコープ外記述を除去し、正本docsの整合を回復。
+
 
 ### #14 Source of Truth同期漏れの是正
 - 優先度: P1
