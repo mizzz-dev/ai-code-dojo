@@ -6,7 +6,17 @@ settings:
 
 importers:
 
-  .: {}
+  .:
+    dependencies:
+      better-sqlite3:
+        specifier: ^11.0.0
+        version: 11.0.0
+
+  apps/api:
+    dependencies:
+      better-sqlite3:
+        specifier: ^11.0.0
+        version: 11.0.0
 
   packages/config: {}
 
@@ -15,3 +25,11 @@ importers:
   packages/runner-sdk: {}
 
   packages/ui: {}
+
+packages:
+
+  better-sqlite3@11.0.0:
+    resolution: {integrity: sha512-0KaDBPJdmVWzVhA0s6hALhQcCJMvCw5VXl4f9u0XPvCLJEVuUPSjIk3cCKyXiJhgFCvDCG9O0sV2t1k0Nt1zUA==}
+    engines: {node: '>=14.0.0'}
+    requiresBuild: true
+    optional: true
