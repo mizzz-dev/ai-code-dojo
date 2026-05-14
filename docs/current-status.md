@@ -12,6 +12,7 @@
 - challenge/submission は SQLite 永続化へ移行済み。
 - challenge version 管理と publish 状態遷移が運用可能。
 - docs正本（`project-overview` / `current-status` / `active-issues` / `system-overview`）および `docs/logs/` の基盤整備は完了。
+- PR #15 / Issue #14 完了後の Source of Truth 同期方針を反映済み。
 
 ## 稼働中の基盤
 - 採点は Worker 経由の非同期処理。
@@ -20,6 +21,8 @@
 - hidden tests 詳細は learner-safe レスポンスで非公開。
 
 ## 直近完了事項
+- Issue #10: 正本docs同期運用の初期整備（PR #15で反映）完了。
+- Issue #14: Source of Truth同期漏れの是正（PR #15マージ）完了。
 - Issue #29: Repository整備（正本docs骨格の整備）完了。
 - Issue #31: `docs/logs/` 正本化と運用導線の整備完了。
 
@@ -29,9 +32,10 @@
 - Issue/PR 完了時の docs 同期運用は、更新漏れ防止ルールの定着が必要。
 
 ## 優先順位（直近）
-1. 正本docsの継続運用定着（Issue/PR完了時の同期ルール徹底）
-2. テスト安定化と運用ドキュメント拡充
-3. 実行隔離・キュー・DBの段階的強化
+1. 高リスク領域（位置情報/走行履歴/交通情報/オービス情報/画像投稿/コミュニティ機能）の要件定義Issueを先行で棚卸しする。
+2. 正本docsの継続運用定着（Issue/PR完了時の同期ルール徹底）
+3. テスト安定化と運用ドキュメント拡充
+4. 実行隔離・キュー・DBの段階的強化
 
 ## 触ってはいけない箇所
 - hidden tests公開境界（learner-safe）
