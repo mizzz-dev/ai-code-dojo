@@ -7,6 +7,11 @@ import { runJavaScriptChallenge, runJavaScriptChallengeViaIsolatedJob } from './
 
 const port = Number(process.env.WORKER_PORT ?? 8081);
 const useIsolationPoc = process.env.RUNNER_ISOLATION_POC === '1';
+const isProduction = process.env.NODE_ENV === 'production';
+
+if (useIsolationPoc && isProduction) {
+  throw new Error('RUNNER_ISOLATION_POC must not be enabled in production.');
+}
 
 const readJson = async (filePath) => JSON.parse(await readFile(filePath, 'utf8'));
 

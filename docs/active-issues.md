@@ -12,13 +12,19 @@
 
 ## 進行中Issue
 
-- #48 Runner隔離実行PoC
+- #50 Runner隔離実行PoC hardening
   - 優先度: P0
-  - 状態: Open（feature flagで最小PoC経路を追加、runtime制約の実強制は未完）
-  - 位置づけ: ADR-001に基づき、Workerから短命ジョブ実行経路を呼び出す最小構成を検証する。
+  - 状態: Open（payload伝搬の安定化・failure payload保持・production guardを適用中）
+  - 位置づけ: Issue #48で追加したPoC経路の安全性/安定性/可観測性を強化する。
   - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration変更、auth/admin実装変更、UI変更。
 
 ## Recently Completed
+
+### #48 Runner隔離実行PoC
+- 優先度: P0
+- 状態: 完了
+- 完了日: 2026-05-15
+- 成果物: `docs/reports/2026-05-15-runner-isolation-poc.md` / `docs/risks/2026-05-15-runner-isolation-poc-risks.md` / `docs/handoff/2026-05-15-issue-48-runner-isolation-poc-handoff.md`。
 
 ### #46 Runner隔離実行基盤 ADR正式化
 - 優先度: P0
