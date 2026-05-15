@@ -92,8 +92,8 @@ export const runJavaScriptChallengeViaIsolatedJob = async ({ challenge, challeng
     const payload = JSON.stringify({ challengePath, challengeBasePath, code });
     const workerRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
     const entryPath = path.join(workerRoot, 'services', 'isolation-job-runner.mjs');
-    const child = spawn('node', [entryPath, payload], {
-      stdio: ['ignore', 'pipe', 'pipe'],
+    const child = spawn('node', [entryPath], {
+      stdio: ['pipe', 'pipe', 'pipe'],
       env: {
         PATH: process.env.PATH,
         NODE_ENV: 'development'
@@ -109,11 +109,28 @@ export const runJavaScriptChallengeViaIsolatedJob = async ({ challenge, challeng
       stderr += chunk.toString('utf8');
     });
 
+    child.stdin.end(payload, 'utf8');
+
     child.on('close', () => {
       try {
         const parsed = JSON.parse(stdout || '{}');
         if (parsed.ok) {
           resolve(parsed.result);
+          return;
+        }
+      } catch {}
+
+      try {
+        const parsedFailure = JSON.parse(stdout || '{}');
+        if (parsedFailure && parsedFailure.ok === false && parsedFailure.result) {
+          resolve({
+            status: parsedFailure.result.status ?? 'failed',
+            score: parsedFailure.result.score ?? 0,
+            durationMs: parsedFailure.result.durationMs ?? 0,
+            logs: parsedFailure.result.logs ?? [stderr || 'isolation job failed'],
+            testResults: parsedFailure.result.testResults ?? [],
+            artifacts: parsedFailure.result.artifacts ?? []
+          });
           return;
         }
       } catch {}

@@ -42,8 +42,21 @@ const runNodeTests = (cwd, tests, timeoutMs, visibility) =>
     });
   });
 
+const readPayloadFromStdin = async () => {
+  let raw = '';
+  for await (const chunk of process.stdin) {
+    raw += chunk.toString('utf8');
+  }
+
+  if (!raw.trim()) {
+    throw new Error('missing isolation payload on stdin');
+  }
+
+  return JSON.parse(raw);
+};
+
 const main = async () => {
-  const payload = JSON.parse(process.argv[2]);
+  const payload = await readPayloadFromStdin();
   const challenge = JSON.parse(await readFile(payload.challengePath, 'utf8'));
   const tmpRoot = await mkdtemp(path.join(os.tmpdir(), 'ai-dojo-isolated-'));
   const workingDirectory = path.join(tmpRoot, challenge.metadata.slug);
