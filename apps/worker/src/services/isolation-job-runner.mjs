@@ -2,43 +2,21 @@ import { cp, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
+import { runNodeTestsInContainer } from './container-runtime-poc.mjs';
 
-const runNodeTests = (cwd, tests, timeoutMs, visibility) =>
+const runNodeTests = ({ workingDirectory: cwd, tests, timeoutMs, visibility }) =>
   new Promise((resolve) => {
     const started = Date.now();
     const child = spawn('node', ['--test', ...tests], { cwd, stdio: ['ignore', 'pipe', 'pipe'] });
-
     let stdout = '';
     let stderr = '';
     let timedOut = false;
-
-    const timer = setTimeout(() => {
-      timedOut = true;
-      child.kill('SIGTERM');
-      setTimeout(() => child.kill('SIGKILL'), 3000);
-    }, timeoutMs);
-
-    child.stdout.on('data', (chunk) => {
-      stdout += chunk.toString('utf8');
-    });
-
-    child.stderr.on('data', (chunk) => {
-      stderr += chunk.toString('utf8');
-    });
-
+    const timer = setTimeout(() => { timedOut = true; child.kill('SIGTERM'); setTimeout(() => child.kill('SIGKILL'), 3000); }, timeoutMs);
+    child.stdout.on('data', (chunk) => { stdout += chunk.toString('utf8'); });
+    child.stderr.on('data', (chunk) => { stderr += chunk.toString('utf8'); });
     child.on('close', (code, signal) => {
       clearTimeout(timer);
-      const durationMs = Date.now() - started;
-      resolve({
-        output: `${stdout}\n${stderr}`.trim(),
-        result: {
-          testId: `${visibility}-suite`,
-          passed: !timedOut && code === 0,
-          message: timedOut ? 'timeout' : signal === 'SIGKILL' ? 'killed' : code === 0 ? 'ok' : 'failed',
-          durationMs,
-          visibility
-        }
-      });
+      resolve({ output: `${stdout}\n${stderr}`.trim(), result: { testId: `${visibility}-suite`, passed: !timedOut && code === 0, message: timedOut ? 'timeout' : signal === 'SIGKILL' ? 'killed' : code === 0 ? 'ok' : 'failed', durationMs: Date.now() - started, visibility } });
     });
   });
 
@@ -70,8 +48,10 @@ const main = async () => {
     }
 
     const timeoutMs = challenge.runnerConfig.timeoutSeconds * 1000;
-    const visibleRun = await runNodeTests(workingDirectory, challenge.visibleTests, timeoutMs, 'visible');
-    const hiddenRun = await runNodeTests(workingDirectory, challenge.hiddenTests, timeoutMs, 'hidden');
+    const useContainerRuntimePoc = process.env.RUNNER_CONTAINER_RUNTIME_POC === '1';
+    const runImpl = useContainerRuntimePoc ? runNodeTestsInContainer : runNodeTests;
+    const visibleRun = await runImpl({ workingDirectory, tests: challenge.visibleTests, timeoutMs, visibility: 'visible' });
+    const hiddenRun = await runImpl({ workingDirectory, tests: challenge.hiddenTests, timeoutMs, visibility: 'hidden' });
 
     const testResults = [visibleRun.result, hiddenRun.result];
     const passedCount = testResults.filter((test) => test.passed).length;

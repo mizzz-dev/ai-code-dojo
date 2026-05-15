@@ -12,13 +12,19 @@
 
 ## 進行中Issue
 
-- #54 runtime制約の実強制方針PoC（local-only / non-production）
+- #56 container runtime強制の最小実装PoC（local-only / non-production）
   - 優先度: P1
-  - 状態: Open（network deny/read-only rootfs/writable tmp/resource limit/timeout kill policy の実装可能性・運用負荷・rollback を検証中）
-  - 位置づけ: #48/#50/#52 で確立した隔離PoC最小経路の次段として、ADR-001 の runtime制約を「本番適用なし」で実効性確認する。
+  - 状態: Open（option builder・runtime選択・failure normalization を実装中）
+  - 位置づけ: #54で確定した採用案（container runtime強制）を、feature flag前提で最小実装し検証する。
   - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration/seed変更、auth/admin実装変更、UI変更、durable queue導入。
 
 ## Recently Completed
+
+### #54 runtime制約の実強制方針PoC（local-only / non-production）
+- 優先度: P1
+- 状態: 完了
+- 完了日: 2026-05-15
+- 成果物: `docs/reports/2026-05-15-runtime-constraints-poc.md` / `docs/risks/2026-05-15-runtime-constraints-poc-risks.md` / `docs/handoff/2026-05-15-issue-54-runtime-constraints-poc-handoff.md`。
 
 ### #52 Runner隔離PoC stdin / child error handling
 - 優先度: P1

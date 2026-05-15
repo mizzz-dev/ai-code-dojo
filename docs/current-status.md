@@ -13,7 +13,7 @@
 - challenge version 管理と publish 状態遷移が運用可能。
 - docs正本（`project-overview` / `current-status` / `active-issues` / `system-overview`）および `docs/logs/` の基盤整備は完了。
 - PR #15 / Issue #14 完了後の Source of Truth 同期方針を反映済み。
-- Issue #37（Runner安全性レビュー）はレビュー記録を完了し、設計フォロー（Issue #44）とADR正式化（Issue #46）を完了。Issue #48 / #50 / #52 は完了し、Issue #54 でruntime制約の実強制方針（local-only PoC）を進行中。
+- Issue #37（Runner安全性レビュー）はレビュー記録を完了し、設計フォロー（Issue #44）とADR正式化（Issue #46）を完了。Issue #48 / #50 / #52 / #54 は完了し、Issue #56 でcontainer runtime強制PoC実装を進行中。
 
 ## 稼働中の基盤
 - 採点は Worker 経由の非同期処理。
@@ -22,7 +22,8 @@
 - hidden tests 詳細は learner-safe レスポンスで非公開。
 
 ## 直近完了事項
-- Issue #54（runtime制約実強制PoC検証）着手。network deny / read-only rootfs / writable tmp / CPU・memory・process limit / timeout kill policy を local-only / non-production 前提で比較検証し、運用負荷とrollback手順を文書化。
+- Issue #56（container runtime強制PoC実装）着手。Issue #54の採用方針に基づき、network deny / read-only rootfs / writable tmp / resource limits / timeout kill policy を実行コマンドへ組み込む最小実装を進行中。
+- Issue #54（runtime制約実強制PoC検証）完了。container runtime強制を採用し、local-only / non-production 前提の実装方針・リスク・rollbackを確定。
 - Issue #52（Runner隔離PoC stdin / child error handling）完了。EPIPE/ENOENT系失敗正規化・二重resolve防止を実装し、PoC経路のworker異常終了リスクを低減。
 - Issue #50（Runner隔離実行PoC hardening）完了。payload stdin化・structured failure payload保持・production guardを適用。
 - Issue #48（Runner隔離実行PoC）完了。feature flag前提の最小隔離経路を実装し、PoC結果・リスク・handoffを記録。
@@ -41,7 +42,7 @@
 - Issue/PR 完了時の docs 同期運用は、更新漏れ防止ルールの定着が必要。
 
 ## 優先順位（直近）
-1. Issue #54（runtime制約実強制PoC検証）の完了（local-onlyで制約実効性/運用負荷/rollback確認）
+1. Issue #56（container runtime強制PoC実装）の完了（feature flag下の最小実装とfailure normalization）
 2. 正本docsの継続運用定着（Issue/PR完了時の同期ルール徹底）
 3. テスト安定化と運用ドキュメント拡充
 4. 実行隔離・キュー・DBの段階的強化
