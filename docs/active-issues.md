@@ -12,6 +12,12 @@
 
 ## 進行中Issue
 
+- #44 Runner隔離実行基盤 設計整理
+  - 優先度: P0
+  - 状態: Open（設計文書化完了。実装は follow-up Issue / ADR 分離）
+  - 位置づけ: Issue #37で特定したP0リスクに対して、隔離実行方式・制限値・返却境界を設計として確定する。
+  - 非目的（このIssueでは実施しない）: runner/Worker全面置換、DB schema/migration変更、auth/admin実装変更、UI変更、infra本番適用。
+
 - #37 Runner安全性レビュー
   - 優先度: P1
   - 状態: Open（レビュー記録完了。実装対応は follow-up Issue 分離待ち）
