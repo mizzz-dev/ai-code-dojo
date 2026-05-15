@@ -12,19 +12,19 @@
 
 ## 進行中Issue
 
-- #46 Runner隔離実行基盤 ADR正式化
+- #48 Runner隔離実行PoC
   - 優先度: P0
-  - 状態: Open（ADR作成完了。PoC/実装は follow-up Issue で分離）
-  - 位置づけ: Issue #44 の設計結果を ADR として固定し、後続実装の拘束条件（resource/network/filesystem/artifact/timeout-kill）を明文化する。
-  - 非目的（このIssueでは実施しない）: runner/Worker実装修正、DB schema/migration変更、auth/admin実装変更、UI変更、infra本番適用。
-
-- #37 Runner安全性レビュー
-  - 優先度: P1
-  - 状態: Open（レビュー記録完了。実装対応は follow-up Issue 分離待ち）
-  - 位置づけ: 現行Runnerの簡易実行前提を点検し、隔離強化へ向けた安全性レビューを進める。
-  - 非目的（このIssueでは実施しない）: runner/Worker実装修正、採点ロジック変更、hidden tests仕様変更。
+  - 状態: Open（feature flagで最小PoC経路を追加、runtime制約の実強制は未完）
+  - 位置づけ: ADR-001に基づき、Workerから短命ジョブ実行経路を呼び出す最小構成を検証する。
+  - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration変更、auth/admin実装変更、UI変更。
 
 ## Recently Completed
+
+### #46 Runner隔離実行基盤 ADR正式化
+- 優先度: P0
+- 状態: 完了
+- 完了日: 2026-05-15
+- 成果物: `docs/adr/ADR-001-runner-isolation-container-jobs.md` / `docs/logs/2026-05-15-issue-46-runner-isolation-adr.md`。
 
 ### #44 Runner隔離実行基盤 設計整理
 - 優先度: P0

@@ -85,3 +85,46 @@ export const runJavaScriptChallenge = async ({ challenge, challengeBasePath, cod
 
   return result;
 };
+
+export const runJavaScriptChallengeViaIsolatedJob = async ({ challenge, challengeBasePath, code }) =>
+  new Promise((resolve) => {
+    const challengePath = path.join(challengeBasePath, 'problem.json');
+    const payload = JSON.stringify({ challengePath, challengeBasePath, code });
+    const workerRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
+    const entryPath = path.join(workerRoot, 'services', 'isolation-job-runner.mjs');
+    const child = spawn('node', [entryPath, payload], {
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: {
+        PATH: process.env.PATH,
+        NODE_ENV: 'development'
+      }
+    });
+
+    let stdout = '';
+    let stderr = '';
+    child.stdout.on('data', (chunk) => {
+      stdout += chunk.toString('utf8');
+    });
+    child.stderr.on('data', (chunk) => {
+      stderr += chunk.toString('utf8');
+    });
+
+    child.on('close', () => {
+      try {
+        const parsed = JSON.parse(stdout || '{}');
+        if (parsed.ok) {
+          resolve(parsed.result);
+          return;
+        }
+      } catch {}
+
+      resolve({
+        status: 'failed',
+        score: 0,
+        durationMs: 0,
+        logs: [stderr || 'isolation job failed'],
+        testResults: [],
+        artifacts: []
+      });
+    });
+  });

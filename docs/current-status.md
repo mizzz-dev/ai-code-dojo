@@ -13,7 +13,7 @@
 - challenge version 管理と publish 状態遷移が運用可能。
 - docs正本（`project-overview` / `current-status` / `active-issues` / `system-overview`）および `docs/logs/` の基盤整備は完了。
 - PR #15 / Issue #14 完了後の Source of Truth 同期方針を反映済み。
-- Issue #37（Runner安全性レビュー）はレビュー記録を完了し、設計フォロー（Issue #44）を経て ADR正式化（Issue #46）を進行中。
+- Issue #37（Runner安全性レビュー）はレビュー記録を完了し、設計フォロー（Issue #44）とADR正式化（Issue #46）を完了。Issue #48でPoC検証を進行中。
 
 ## 稼働中の基盤
 - 採点は Worker 経由の非同期処理。
@@ -22,7 +22,8 @@
 - hidden tests 詳細は learner-safe レスポンスで非公開。
 
 ## 直近完了事項
-- Issue #46（Runner隔離実行基盤 ADR化）で `docs/adr/ADR-001-runner-isolation-container-jobs.md` を追加し、隔離方式・制限値・返却境界・rollback方針を正式化。
+- Issue #46（Runner隔離実行基盤 ADR化）完了。`docs/adr/ADR-001-runner-isolation-container-jobs.md` で隔離方式・制限値・返却境界・rollback方針を正式化。
+- Issue #48（Runner隔離実行PoC）は進行中。feature flag前提の最小実装とPoC結果記録を開始。
 - Issue #44（Runner隔離実行基盤 設計整理）で採用案/却下案/トレードオフを文書化。
 - Issue #37（Runner安全性レビュー）結果をdocs/reportsへ記録済み。実装修正はfollow-up Issueへ分離予定。
 - Issue #41: Source of Truth再整合（Issue #37の意味付け是正）完了。
@@ -37,7 +38,7 @@
 - Issue/PR 完了時の docs 同期運用は、更新漏れ防止ルールの定着が必要。
 
 ## 優先順位（直近）
-1. Issue #46（Runner隔離実行基盤 ADR化）を起点に PoC / runbook の実装計画化
+1. Issue #48（Runner隔離実行PoC）の検証完了（runtime制約の実強制方針を確定）
 2. 正本docsの継続運用定着（Issue/PR完了時の同期ルール徹底）
 3. テスト安定化と運用ドキュメント拡充
 4. 実行隔離・キュー・DBの段階的強化
