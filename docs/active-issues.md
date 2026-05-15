@@ -12,13 +12,19 @@
 
 ## 進行中Issue
 
-- #52 Runner隔離PoC stdin / child error handling
+- #54 runtime制約の実強制方針PoC（local-only / non-production）
   - 優先度: P1
-  - 状態: Open（child.stdin error と child process error の failed result 正規化、二重resolve防止を実装中）
-  - 位置づけ: #50 hardening のレビュー指摘（P1）に対応し、PoC経路でworker unhandled errorを防ぐ。
-  - 非目的（このIssueでは実施しない）: 本番コンテナランタイム統合、network deny/read-only rootfs の強制、runner/Worker全面置換、DB schema/migration変更、auth/admin実装変更、UI変更。
+  - 状態: Open（network deny/read-only rootfs/writable tmp/resource limit/timeout kill policy の実装可能性・運用負荷・rollback を検証中）
+  - 位置づけ: #48/#50/#52 で確立した隔離PoC最小経路の次段として、ADR-001 の runtime制約を「本番適用なし」で実効性確認する。
+  - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration/seed変更、auth/admin実装変更、UI変更、durable queue導入。
 
 ## Recently Completed
+
+### #52 Runner隔離PoC stdin / child error handling
+- 優先度: P1
+- 状態: 完了
+- 完了日: 2026-05-15
+- 成果物: `docs/logs/2026-05-15-issue-52-runner-isolation-poc-error-handling.md` / `docs/handoff/2026-05-15-issue-52-isolation-poc-error-handling-handoff.md`。
 
 ### #50 Runner隔離実行PoC hardening
 - 優先度: P0
