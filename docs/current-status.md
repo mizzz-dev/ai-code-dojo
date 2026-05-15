@@ -1,6 +1,6 @@
 # current-status（正本）
 
-最終更新: 2026-05-14
+最終更新: 2026-05-15
 
 ## この文書の目的
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
@@ -22,6 +22,7 @@
 - hidden tests 詳細は learner-safe レスポンスで非公開。
 
 ## 直近完了事項
+- Issue #37（Runner安全性レビュー）結果をdocs/reportsへ記録済み。実装修正はfollow-up Issueへ分離予定。
 - Issue #41: Source of Truth再整合（Issue #37の意味付け是正）完了。
 - Issue #10: 正本docs同期運用の初期整備（PR #15で反映）完了。
 - Issue #14: Source of Truth同期漏れの是正（PR #15マージ）完了。
