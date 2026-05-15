@@ -12,11 +12,11 @@
 
 ## 進行中Issue
 
-- #44 Runner隔離実行基盤 設計整理
+- #46 Runner隔離実行基盤 ADR正式化
   - 優先度: P0
-  - 状態: Open（設計文書化完了。実装は follow-up Issue / ADR 分離）
-  - 位置づけ: Issue #37で特定したP0リスクに対して、隔離実行方式・制限値・返却境界を設計として確定する。
-  - 非目的（このIssueでは実施しない）: runner/Worker全面置換、DB schema/migration変更、auth/admin実装変更、UI変更、infra本番適用。
+  - 状態: Open（ADR作成完了。PoC/実装は follow-up Issue で分離）
+  - 位置づけ: Issue #44 の設計結果を ADR として固定し、後続実装の拘束条件（resource/network/filesystem/artifact/timeout-kill）を明文化する。
+  - 非目的（このIssueでは実施しない）: runner/Worker実装修正、DB schema/migration変更、auth/admin実装変更、UI変更、infra本番適用。
 
 - #37 Runner安全性レビュー
   - 優先度: P1
@@ -25,6 +25,12 @@
   - 非目的（このIssueでは実施しない）: runner/Worker実装修正、採点ロジック変更、hidden tests仕様変更。
 
 ## Recently Completed
+
+### #44 Runner隔離実行基盤 設計整理
+- 優先度: P0
+- 状態: 完了
+- 完了日: 2026-05-15
+- 成果物: `docs/reports/2026-05-15-runner-isolation-design.md` / `docs/risks/2026-05-15-runner-isolation-risks.md` / `docs/logs/2026-05-15-issue-44-runner-isolation-design.md`。
 
 ### #41 Source of Truth再整合（Issue #37の意味付け是正）
 - 優先度: P1
