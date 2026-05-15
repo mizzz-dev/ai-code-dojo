@@ -123,23 +123,34 @@ test('runNodeTestsInContainer normalizes docker unavailable as failed', async ()
 });
 
 
-test('runNodeTestsInContainer host timeout resolves once and sends kill signals', async () => {
+test('runNodeTestsInContainer host timeout escalates to SIGKILL and resolves on close', async () => {
   const events = [];
+  let childRef;
   const fakeSpawn = () => {
     const child = new EventEmitter();
     child.stdout = new EventEmitter();
     child.stderr = new EventEmitter();
-    child.kill = (signal) => { events.push(signal); };
+    child.kill = (signal) => {
+      events.push(signal);
+      if (signal === 'SIGKILL') setImmediate(() => child.emit('close', 137));
+    };
+    childRef = child;
     return child;
   };
 
-  const result = await runNodeTestsInContainer({
+  const resultPromise = runNodeTestsInContainer({
     workingDirectory: '/tmp/job', tests: ['x'], timeoutMs: 10, visibility: 'visible', spawnImpl: fakeSpawn
   });
 
+  setTimeout(() => {
+    if (!events.includes('SIGKILL')) childRef.emit('close', 143);
+  }, 9000);
+
+  const result = await resultPromise;
+
   assert.equal(result.result.passed, false);
   assert.equal(result.result.message, 'timeout');
-  assert.deepEqual(events, ['SIGTERM']);
+  assert.deepEqual(events, ['SIGTERM', 'SIGKILL']);
 });
 
 test('runNodeTestsInContainer avoids double resolve on error then close', async () => {

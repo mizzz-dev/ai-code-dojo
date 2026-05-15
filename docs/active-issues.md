@@ -12,14 +12,20 @@
 
 ## 進行中Issue
 
-- #58 container runtime timeout hardening（local-only / non-production）
+- #60 container runtime kill escalation hardening（local-only / non-production）
   - 優先度: P1
-  - 状態: Open（host-side timeout / kill policy / Alpine timeout互換性のhardeningを実施中）
-  - 位置づけ: #56のPoC実装に対するレビュー指摘（host timeout不足・BusyBox timeout互換性）への対応。
+  - 状態: Open（host timeout時の finalize/kill timer 競合を修正中）
+  - 位置づけ: #58対応後のレビュー指摘（P1: SIGKILL escalationがcancelされるケース）への対応。
   - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration/seed変更、auth/admin実装変更、UI変更、durable queue導入。
 
 
 ## Recently Completed
+
+### #58 container runtime timeout hardening（local-only / non-production）
+- 優先度: P1
+- 状態: 完了
+- 完了日: 2026-05-15
+- 成果物: `apps/worker/src/services/container-runtime-poc.mjs` / `docs/handoff/2026-05-15-issue-58-container-runtime-timeout-hardening-handoff.md`。
 
 ### #56 container runtime強制の最小実装PoC（local-only / non-production）
 - 優先度: P1
