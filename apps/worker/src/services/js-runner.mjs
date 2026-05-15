@@ -87,12 +87,20 @@ export const runJavaScriptChallenge = async ({ challenge, challengeBasePath, cod
 };
 
 export const runJavaScriptChallengeViaIsolatedJob = async ({ challenge, challengeBasePath, code }) =>
+  runJavaScriptChallengeViaIsolatedJobWithSpawn({ challenge, challengeBasePath, code, spawnImpl: spawn });
+
+export const runJavaScriptChallengeViaIsolatedJobWithSpawn = async ({
+  challenge,
+  challengeBasePath,
+  code,
+  spawnImpl
+}) =>
   new Promise((resolve) => {
     const challengePath = path.join(challengeBasePath, 'problem.json');
     const payload = JSON.stringify({ challengePath, challengeBasePath, code });
     const workerRoot = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
     const entryPath = path.join(workerRoot, 'services', 'isolation-job-runner.mjs');
-    const child = spawn('node', [entryPath], {
+    const child = spawnImpl('node', [entryPath], {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: {
         PATH: process.env.PATH,
@@ -109,13 +117,37 @@ export const runJavaScriptChallengeViaIsolatedJob = async ({ challenge, challeng
       stderr += chunk.toString('utf8');
     });
 
+    let settled = false;
+    const resolveOnce = (result) => {
+      if (settled) return;
+      settled = true;
+      resolve(result);
+    };
+
+    const normalizeFailure = (message, parsedFailure = null) => ({
+      status: parsedFailure?.result?.status ?? 'failed',
+      score: parsedFailure?.result?.score ?? 0,
+      durationMs: parsedFailure?.result?.durationMs ?? 0,
+      logs: parsedFailure?.result?.logs ?? [message],
+      testResults: parsedFailure?.result?.testResults ?? [],
+      artifacts: parsedFailure?.result?.artifacts ?? []
+    });
+
+    child.stdin.on('error', (error) => {
+      resolveOnce(normalizeFailure(`isolation job stdin failed: ${error.code ?? error.message}`));
+    });
+
+    child.on('error', (error) => {
+      resolveOnce(normalizeFailure(`isolation job spawn failed: ${error.code ?? error.message}`));
+    });
+
     child.stdin.end(payload, 'utf8');
 
     child.on('close', () => {
       try {
         const parsed = JSON.parse(stdout || '{}');
         if (parsed.ok) {
-          resolve(parsed.result);
+          resolveOnce(parsed.result);
           return;
         }
       } catch {}
@@ -123,25 +155,11 @@ export const runJavaScriptChallengeViaIsolatedJob = async ({ challenge, challeng
       try {
         const parsedFailure = JSON.parse(stdout || '{}');
         if (parsedFailure && parsedFailure.ok === false && parsedFailure.result) {
-          resolve({
-            status: parsedFailure.result.status ?? 'failed',
-            score: parsedFailure.result.score ?? 0,
-            durationMs: parsedFailure.result.durationMs ?? 0,
-            logs: parsedFailure.result.logs ?? [stderr || 'isolation job failed'],
-            testResults: parsedFailure.result.testResults ?? [],
-            artifacts: parsedFailure.result.artifacts ?? []
-          });
+          resolveOnce(normalizeFailure(stderr || 'isolation job failed', parsedFailure));
           return;
         }
       } catch {}
 
-      resolve({
-        status: 'failed',
-        score: 0,
-        durationMs: 0,
-        logs: [stderr || 'isolation job failed'],
-        testResults: [],
-        artifacts: []
-      });
+      resolveOnce(normalizeFailure(stderr || 'isolation job failed'));
     });
   });

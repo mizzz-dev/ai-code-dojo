@@ -12,13 +12,19 @@
 
 ## 進行中Issue
 
-- #50 Runner隔離実行PoC hardening
-  - 優先度: P0
-  - 状態: Open（payload伝搬の安定化・failure payload保持・production guardを適用中）
-  - 位置づけ: Issue #48で追加したPoC経路の安全性/安定性/可観測性を強化する。
-  - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration変更、auth/admin実装変更、UI変更。
+- #52 Runner隔離PoC stdin / child error handling
+  - 優先度: P1
+  - 状態: Open（child.stdin error と child process error の failed result 正規化、二重resolve防止を実装中）
+  - 位置づけ: #50 hardening のレビュー指摘（P1）に対応し、PoC経路でworker unhandled errorを防ぐ。
+  - 非目的（このIssueでは実施しない）: 本番コンテナランタイム統合、network deny/read-only rootfs の強制、runner/Worker全面置換、DB schema/migration変更、auth/admin実装変更、UI変更。
 
 ## Recently Completed
+
+### #50 Runner隔離実行PoC hardening
+- 優先度: P0
+- 状態: 完了
+- 完了日: 2026-05-15
+- 成果物: payload stdin化、structured failure payload保持、production guard適用、および関連ログ/handoff。
 
 ### #48 Runner隔離実行PoC
 - 優先度: P0
