@@ -37,6 +37,7 @@ export const runNodeTestsInContainer = ({ workingDirectory, tests, timeoutMs, vi
     let stdout = '';
     let stderr = '';
     let settled = false;
+    let hostTimedOut = false;
     let killTimer = null;
     const hostTimeoutMs = timeoutMs + 5000;
 
@@ -50,7 +51,6 @@ export const runNodeTestsInContainer = ({ workingDirectory, tests, timeoutMs, vi
     const finalize = (message, passed) => {
       if (settled) return;
       settled = true;
-      clearKillTimer();
       resolve({
         output: `${stdout}\n${stderr}`.trim(),
         result: {
@@ -68,23 +68,28 @@ export const runNodeTestsInContainer = ({ workingDirectory, tests, timeoutMs, vi
 
     const hostTimer = setTimeout(() => {
       if (settled) return;
+      hostTimedOut = true;
       if (typeof child.kill === 'function') child.kill('SIGTERM');
+      clearKillTimer();
       killTimer = setTimeout(() => {
         if (settled) return;
         if (typeof child.kill === 'function') child.kill('SIGKILL');
       }, 3000);
-      finalize('timeout', false);
     }, hostTimeoutMs);
 
     const clearHostTimer = () => clearTimeout(hostTimer);
 
     child.on('error', (error) => {
       clearHostTimer();
+      clearKillTimer();
+      if (hostTimedOut) return finalize('timeout', false);
       finalize(`runtime unavailable: ${error.code ?? error.message}`, false);
     });
 
     child.on('close', (code) => {
       clearHostTimer();
+      clearKillTimer();
+      if (hostTimedOut) return finalize('timeout', false);
       if (code === 0) return finalize('ok', true);
       if (code === 124 || code === 137 || code === 143) return finalize('timeout', false);
       finalize('runtime failure', false);
