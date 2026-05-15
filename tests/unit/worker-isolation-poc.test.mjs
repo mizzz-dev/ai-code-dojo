@@ -88,3 +88,35 @@ test('runJavaScriptChallengeViaIsolatedJob normalizes child spawn failures once'
   assert.equal(result.logs.length, 1);
   assert.match(result.logs[0], /spawn failed: ENOENT/);
 });
+import { buildContainerRuntimeArgs, runNodeTestsInContainer } from '../../apps/worker/src/services/container-runtime-poc.mjs';
+
+test('buildContainerRuntimeArgs builds deterministic docker options', () => {
+  const args = buildContainerRuntimeArgs({
+    workingDirectory: '/tmp/job',
+    tests: ['tests/visible/a.test.js'],
+    timeoutSeconds: 5
+  });
+
+  assert.deepEqual(args.slice(0, 17), [
+    'run', '--rm', '--network', 'none', '--read-only', '--tmpfs', '/tmp:rw,noexec,nosuid,size=64m',
+    '--cpus', '0.5', '--memory', '256m', '--pids-limit', '64', '-v', '/tmp/job:/workspace:ro', '-w', '/workspace'
+  ]);
+  assert.ok(args.includes('node'));
+  assert.ok(args.includes('--test'));
+});
+
+test('runNodeTestsInContainer normalizes docker unavailable as failed', async () => {
+  const fakeSpawn = () => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    setImmediate(() => child.emit('error', Object.assign(new Error('not found'), { code: 'ENOENT' })));
+    return child;
+  };
+
+  const result = await runNodeTestsInContainer({
+    workingDirectory: '/tmp/job', tests: ['x'], timeoutMs: 1000, visibility: 'visible', spawnImpl: fakeSpawn
+  });
+  assert.equal(result.result.passed, false);
+  assert.match(result.result.message, /runtime unavailable/);
+});
