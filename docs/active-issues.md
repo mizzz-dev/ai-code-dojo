@@ -12,13 +12,20 @@
 
 ## 進行中Issue
 
-- #56 container runtime強制の最小実装PoC（local-only / non-production）
+- #58 container runtime timeout hardening（local-only / non-production）
   - 優先度: P1
-  - 状態: Open（option builder・runtime選択・failure normalization を実装中）
-  - 位置づけ: #54で確定した採用案（container runtime強制）を、feature flag前提で最小実装し検証する。
+  - 状態: Open（host-side timeout / kill policy / Alpine timeout互換性のhardeningを実施中）
+  - 位置づけ: #56のPoC実装に対するレビュー指摘（host timeout不足・BusyBox timeout互換性）への対応。
   - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration/seed変更、auth/admin実装変更、UI変更、durable queue導入。
 
+
 ## Recently Completed
+
+### #56 container runtime強制の最小実装PoC（local-only / non-production）
+- 優先度: P1
+- 状態: 完了
+- 完了日: 2026-05-15
+- 成果物: `apps/worker/src/services/container-runtime-poc.mjs` / `docs/handoff/2026-05-15-issue-56-container-runtime-poc-handoff.md`。
 
 ### #54 runtime制約の実強制方針PoC（local-only / non-production）
 - 優先度: P1

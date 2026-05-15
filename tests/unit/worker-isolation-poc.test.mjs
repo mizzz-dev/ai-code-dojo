@@ -101,8 +101,9 @@ test('buildContainerRuntimeArgs builds deterministic docker options', () => {
     'run', '--rm', '--network', 'none', '--read-only', '--tmpfs', '/tmp:rw,noexec,nosuid,size=64m',
     '--cpus', '0.5', '--memory', '256m', '--pids-limit', '64', '-v', '/tmp/job:/workspace:ro', '-w', '/workspace'
   ]);
-  assert.ok(args.includes('node'));
-  assert.ok(args.includes('--test'));
+  assert.equal(args[args.length - 3], 'sh');
+  assert.equal(args[args.length - 2], '-lc');
+  assert.match(args[args.length - 1], /timeout -s TERM -k 3s/);
 });
 
 test('runNodeTestsInContainer normalizes docker unavailable as failed', async () => {
@@ -118,5 +119,45 @@ test('runNodeTestsInContainer normalizes docker unavailable as failed', async ()
     workingDirectory: '/tmp/job', tests: ['x'], timeoutMs: 1000, visibility: 'visible', spawnImpl: fakeSpawn
   });
   assert.equal(result.result.passed, false);
+  assert.match(result.result.message, /runtime unavailable/);
+});
+
+
+test('runNodeTestsInContainer host timeout resolves once and sends kill signals', async () => {
+  const events = [];
+  const fakeSpawn = () => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    child.kill = (signal) => { events.push(signal); };
+    return child;
+  };
+
+  const result = await runNodeTestsInContainer({
+    workingDirectory: '/tmp/job', tests: ['x'], timeoutMs: 10, visibility: 'visible', spawnImpl: fakeSpawn
+  });
+
+  assert.equal(result.result.passed, false);
+  assert.equal(result.result.message, 'timeout');
+  assert.deepEqual(events, ['SIGTERM']);
+});
+
+test('runNodeTestsInContainer avoids double resolve on error then close', async () => {
+  const fakeSpawn = () => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    child.kill = () => {};
+    setImmediate(() => {
+      child.emit('error', Object.assign(new Error('not found'), { code: 'ENOENT' }));
+      child.emit('close', 1);
+    });
+    return child;
+  };
+
+  const result = await runNodeTestsInContainer({
+    workingDirectory: '/tmp/job', tests: ['x'], timeoutMs: 1000, visibility: 'visible', spawnImpl: fakeSpawn
+  });
+
   assert.match(result.result.message, /runtime unavailable/);
 });
