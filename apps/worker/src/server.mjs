@@ -3,9 +3,10 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { getChallengeBasePath } from '../../api/src/repositories/challenge-repository.mjs';
 import { getSubmission, updateSubmission } from '../../api/src/repositories/submission-repository.mjs';
-import { runJavaScriptChallenge } from './services/js-runner.mjs';
+import { runJavaScriptChallenge, runJavaScriptChallengeViaIsolatedJob } from './services/js-runner.mjs';
 
 const port = Number(process.env.WORKER_PORT ?? 8081);
+const useIsolationPoc = process.env.RUNNER_ISOLATION_POC === '1';
 
 const readJson = async (filePath) => JSON.parse(await readFile(filePath, 'utf8'));
 
@@ -46,11 +47,17 @@ const processSubmission = async (submissionId) => {
       return;
     }
 
-    const normalizedResult = await runJavaScriptChallenge({
-      challenge,
-      challengeBasePath,
-      code: submission.code
-    });
+    const normalizedResult = useIsolationPoc
+      ? await runJavaScriptChallengeViaIsolatedJob({
+          challenge,
+          challengeBasePath,
+          code: submission.code
+        })
+      : await runJavaScriptChallenge({
+          challenge,
+          challengeBasePath,
+          code: submission.code
+        });
 
     await updateSubmission(submissionId, { status: 'completed', result: normalizedResult });
   } catch (error) {
