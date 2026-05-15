@@ -1,8 +1,12 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { EventEmitter } from 'node:events';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
-import { runJavaScriptChallengeViaIsolatedJob } from '../../apps/worker/src/services/js-runner.mjs';
+import {
+  runJavaScriptChallengeViaIsolatedJob,
+  runJavaScriptChallengeViaIsolatedJobWithSpawn
+} from '../../apps/worker/src/services/js-runner.mjs';
 
 test('runJavaScriptChallengeViaIsolatedJob keeps structured failure payload logs', async () => {
   const result = await runJavaScriptChallengeViaIsolatedJob({
@@ -33,4 +37,54 @@ test('worker server rejects RUNNER_ISOLATION_POC=1 in production', async () => {
   const code = await new Promise((resolve) => child.on('close', resolve));
   assert.notEqual(code, 0);
   assert.match(stderr, /RUNNER_ISOLATION_POC must not be enabled in production/);
+});
+
+test('runJavaScriptChallengeViaIsolatedJob normalizes child stdin EPIPE failures', async () => {
+  const fakeSpawn = () => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    child.stdin = new EventEmitter();
+    child.stdin.end = () => {
+      child.stdin.emit('error', Object.assign(new Error('broken pipe'), { code: 'EPIPE' }));
+    };
+    setImmediate(() => child.emit('close', 1));
+    return child;
+  };
+
+  const result = await runJavaScriptChallengeViaIsolatedJobWithSpawn({
+    challenge: {},
+    challengeBasePath: '/tmp',
+    code: 'console.log(1);',
+    spawnImpl: fakeSpawn
+  });
+
+  assert.equal(result.status, 'failed');
+  assert.match(result.logs[0], /stdin failed: EPIPE/);
+});
+
+test('runJavaScriptChallengeViaIsolatedJob normalizes child spawn failures once', async () => {
+  const fakeSpawn = () => {
+    const child = new EventEmitter();
+    child.stdout = new EventEmitter();
+    child.stderr = new EventEmitter();
+    child.stdin = new EventEmitter();
+    child.stdin.end = () => {};
+    setImmediate(() => {
+      child.emit('error', Object.assign(new Error('spawn failed'), { code: 'ENOENT' }));
+      child.emit('close', 1);
+    });
+    return child;
+  };
+
+  const result = await runJavaScriptChallengeViaIsolatedJobWithSpawn({
+    challenge: {},
+    challengeBasePath: '/tmp',
+    code: 'console.log(1);',
+    spawnImpl: fakeSpawn
+  });
+
+  assert.equal(result.status, 'failed');
+  assert.equal(result.logs.length, 1);
+  assert.match(result.logs[0], /spawn failed: ENOENT/);
 });
