@@ -1,6 +1,6 @@
 # current-status（正本）
 
-最終更新: 2026-05-17
+最終更新: 2026-05-18
 
 ## この文書の目的
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
@@ -13,7 +13,7 @@
 - challenge version 管理と publish 状態遷移が運用可能。
 - docs正本（`project-overview` / `current-status` / `active-issues` / `system-overview`）および `docs/logs/` の基盤整備は完了。
 - PR #15 / Issue #14 完了後の Source of Truth 同期方針を反映済み。
-- Issue #37（Runner安全性レビュー）はレビュー記録を完了し、設計フォロー（Issue #44）とADR正式化（Issue #46）を完了。Issue #48 / #50 / #52 / #54 / #56 / #58 / #60 は完了し、Issue #62 で SIGKILL escalation test の安定化を進行中。
+- Issue #37（Runner安全性レビュー）はレビュー記録を完了し、設計フォロー（Issue #44）とADR正式化（Issue #46）を完了。Issue #48 / #50 / #52 / #54 / #56 / #58 / #60 / #62 は完了。Issue #64 で hidden tests / internal artifact / learner-safe 境界レビューを進行中。
 
 ## 稼働中の基盤
 - 採点は Worker 経由の非同期処理。
@@ -37,7 +37,7 @@
 - Issue/PR 完了時の docs 同期運用は、更新漏れ防止ルールの定着が必要。
 
 ## 優先順位（直近）
-1. Issue #62（SIGKILL escalation unit test の flaky 解消）の完了
+1. Issue #64（hidden tests / internal artifact / learner-safe 境界レビュー）の整理と follow-up 分離
 2. 正本docsの継続運用定着（Issue/PR完了時の同期ルール徹底）
 3. テスト安定化と運用ドキュメント拡充
 4. 実行隔離・キュー・DBの段階的強化

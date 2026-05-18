@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-17
+最終更新: 2026-05-18
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -12,14 +12,20 @@
 
 ## 進行中Issue
 
-- #62 SIGKILL escalation unit test flakiness 対応（local-only / non-production）
-  - 優先度: P2
-  - 状態: Open（fallback close 猶予不足によるCI flaky 懸念の解消を実施中）
-  - 位置づけ: #60対応後のレビュー指摘（P2: 低速/高負荷CIでの非決定性）への対応。
+- #64 hidden tests / internal artifact / learner-safe レスポンス境界レビュー
+  - 優先度: P1
+  - 状態: Open
+  - 位置づけ: ADR-001 段階導入の未完項目（ログ境界の自動検査）に接続するセキュリティレビュー。
+  - ゴール: 現状実装・既存テスト・docsの棚卸し、不足する自動検査/マスキング/監査ログ/runbookの follow-up 分離。
   - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration/seed変更、auth/admin実装変更、UI変更、durable queue導入。
 
-
 ## Recently Completed
+
+### #62 SIGKILL escalation unit test flakiness 対応（local-only / non-production）
+- 優先度: P2
+- 状態: 完了
+- 完了日: 2026-05-17
+- 成果物: `tests/unit/worker-isolation-poc.test.mjs` / `docs/handoff/2026-05-17-issue-62-sigkill-test-flakiness-handoff.md`。
 
 ### #60 container runtime kill escalation hardening（local-only / non-production）
 - 優先度: P1
