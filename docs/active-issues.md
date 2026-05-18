@@ -12,14 +12,21 @@
 
 ## 進行中Issue
 
-- #71 post Issue #68 docs同期（Source of Truth整合）
+- #73 post Issue #71 docs同期漏れ防止チェックリスト固定化
   - 優先度: P1
-  - 状態: Open
-  - 位置づけ: Issue #68 / PR #69 / PR #70 完了後に、正本 docs 側の状態不整合を是正する同期タスク。
-  - ゴール: `docs/current-status.md` と `docs/active-issues.md` が GitHub 側完了状態（Issue #68 closed、PR #70 merged）と一致し、次タスクを1件に絞って handoff 可能な状態にする。
-  - 非目的（このIssueでは実施しない）: runner/Worker 本体変更、hidden tests 仕様変更、DB schema/migration/seed変更、auth/admin実装変更、UI変更、infra変更。
+  - 状態: Open（In Progress）
+  - 位置づけ: PR #72 merge / Issue #71 close 後に発生した Source of Truth 不整合の再発防止として、merge後処理の docs 同期チェックリストをリポジトリ内 runbook に固定化する。
+  - ゴール: Issue/PR 完了時に `current-status` / `active-issues` / `logs` / `ai-prompts` / `handoff` の同期が漏れない再利用可能手順を整備し、監査可能な運用にする。
+  - 非目的（このIssueでは実施しない）: runner/Worker 本体変更、hidden tests 仕様変更、DB schema/migration/seed変更、auth/admin実装変更、API/UI/infra変更、challenge 既存version上書き。
 
 ## Recently Completed
+
+### #71 post Issue #68 docs同期（Source of Truth整合）
+- 優先度: P1
+- 状態: 完了
+- 完了日: 2026-05-18
+- 成果物: `docs/current-status.md` / `docs/active-issues.md` / `docs/logs/2026-05-18-issue-71-post-issue-68-docs-sync.md` / `docs/handoff/2026-05-18-issue-71-post-issue-68-docs-sync-handoff.md` / `docs/ai-prompts/2026-05-18-issue-71-post-issue-68-docs-sync-codex.md`。
+- 補足: PR #72 merged / Issue #71 closed を受け、次タスクとして Issue #73（merge後 docs 同期漏れ防止チェックリスト固定化）へ接続。
 
 ### #68 timeout/runtime failure 経路で hidden由来文字列が learner-safe 返却に混入しないことを integration/E2E test で保証
 - 優先度: P1
