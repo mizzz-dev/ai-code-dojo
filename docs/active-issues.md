@@ -12,14 +12,20 @@
 
 ## 進行中Issue
 
-- #66 learner-safe 返却で `result.internal` / `result.logs` の非露出を integration test で保証
+- #68 timeout/runtime failure 経路で hidden由来文字列が learner-safe 返却に混入しないことを integration/E2E test で保証
   - 優先度: P1
   - 状態: Open
-  - 位置づけ: Issue #64 のレビュー完了後 follow-up（HT-64-01 の回帰検知自動化）。
-  - ゴール: `GET /api/submissions/:id` の learner/guest 返却で `result.internal` と `result.logs` が非露出であることを否定系 integration test で保証し、admin 境界の既存仕様を壊さない。
+  - 位置づけ: Issue #64 のリスク台帳 HT-64-02（P1）に対する follow-up。Issue #66 完了後の失敗経路拡張。
+  - ゴール: timeout または runtime failure 相当の `GET /api/submissions/:id` learner/guest 返却で hidden由来詳細文字列と `result.internal` / `result.logs` が非露出であることを保証し、admin/internal 境界の既存仕様を壊さない。
   - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration/seed変更、auth/admin実装変更、UI変更、durable queue導入。
 
 ## Recently Completed
+
+### #66 learner-safe 返却で `result.internal` / `result.logs` の非露出を integration test で保証
+- 優先度: P1
+- 状態: 完了
+- 完了日: 2026-05-18
+- 成果物: `tests/integration/api-flow.test.mjs` / `docs/handoff/2026-05-18-issue-66-learner-safe-internal-logs-integration-test-handoff.md`。
 
 ### #64 hidden tests / internal artifact / learner-safe レスポンス境界レビュー
 - 優先度: P1
