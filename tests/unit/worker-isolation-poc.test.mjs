@@ -142,11 +142,12 @@ test('runNodeTestsInContainer host timeout escalates to SIGKILL and resolves on 
     workingDirectory: '/tmp/job', tests: ['x'], timeoutMs: 10, visibility: 'visible', spawnImpl: fakeSpawn
   });
 
-  setTimeout(() => {
+  const fallbackCloseTimer = setTimeout(() => {
     if (!events.includes('SIGKILL')) childRef.emit('close', 143);
-  }, 9000);
+  }, 20000);
 
   const result = await resultPromise;
+  clearTimeout(fallbackCloseTimer);
 
   assert.equal(result.result.passed, false);
   assert.equal(result.result.message, 'timeout');
