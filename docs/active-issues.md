@@ -12,14 +12,21 @@
 
 ## 進行中Issue
 
-- #68 timeout/runtime failure 経路で hidden由来文字列が learner-safe 返却に混入しないことを integration/E2E test で保証
+- #71 post Issue #68 docs同期（Source of Truth整合）
   - 優先度: P1
   - 状態: Open
-  - 位置づけ: Issue #64 のリスク台帳 HT-64-02（P1）に対する follow-up。Issue #66 完了後の失敗経路拡張。
-  - ゴール: timeout または runtime failure 相当の `GET /api/submissions/:id` learner/guest 返却で hidden由来詳細文字列と `result.internal` / `result.logs` が非露出であることを保証し、admin/internal 境界の既存仕様を壊さない。
-  - 非目的（このIssueでは実施しない）: 本番適用、runner/Worker全面置換、DB schema/migration/seed変更、auth/admin実装変更、UI変更、durable queue導入。
+  - 位置づけ: Issue #68 / PR #69 / PR #70 完了後に、正本 docs 側の状態不整合を是正する同期タスク。
+  - ゴール: `docs/current-status.md` と `docs/active-issues.md` が GitHub 側完了状態（Issue #68 closed、PR #70 merged）と一致し、次タスクを1件に絞って handoff 可能な状態にする。
+  - 非目的（このIssueでは実施しない）: runner/Worker 本体変更、hidden tests 仕様変更、DB schema/migration/seed変更、auth/admin実装変更、UI変更、infra変更。
 
 ## Recently Completed
+
+### #68 timeout/runtime failure 経路で hidden由来文字列が learner-safe 返却に混入しないことを integration/E2E test で保証
+- 優先度: P1
+- 状態: 完了
+- 完了日: 2026-05-18
+- 成果物: `tests/integration/api-flow.test.mjs` / `docs/logs/2026-05-18-issue-68-timeout-runtime-failure-hidden-leak-test.md` / `docs/logs/2026-05-18-issue-68-timeout-runtime-failure-hidden-leak-test-followup.md` / `docs/handoff/2026-05-18-issue-68-timeout-runtime-failure-hidden-leak-test-followup-handoff.md`。
+- 補足: PR #69 のレビュー指摘（構文エラー経路依存）を PR #70 で follow-up 修正し、隔離実行経路を通す検証に更新。
 
 ### #66 learner-safe 返却で `result.internal` / `result.logs` の非露出を integration test で保証
 - 優先度: P1
@@ -38,9 +45,3 @@
 - 状態: 完了
 - 完了日: 2026-05-17
 - 成果物: `tests/unit/worker-isolation-poc.test.mjs` / `docs/handoff/2026-05-17-issue-62-sigkill-test-flakiness-handoff.md`。
-
-### #60 container runtime kill escalation hardening（local-only / non-production）
-- 優先度: P1
-- 状態: 完了
-- 完了日: 2026-05-15
-- 成果物: `apps/worker/src/services/container-runtime-poc.mjs` / `docs/handoff/2026-05-15-issue-60-container-runtime-kill-escalation-handoff.md`。
