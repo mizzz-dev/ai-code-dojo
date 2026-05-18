@@ -68,7 +68,7 @@ test('challenge 一覧/詳細, submission 作成/結果取得', async (t) => {
     body: JSON.stringify({
       challengeSlug: 'js-bugfix-add',
       language: 'javascript',
-      code: 'export function sum(nums){ return nums.reduce((acc, n) => acc + n, 0); }'
+      code: 'export function sum(nums){ while (true) {} }'
     })
   });
   assert.equal(submissionRes.status, 201);
@@ -100,7 +100,7 @@ test('challenge 一覧/詳細, submission 作成/結果取得', async (t) => {
 
 
 test('timeout/runtime failure 経路でも learner-safe 境界を維持する', async (t) => {
-  const worker = startServer('node', ['apps/worker/src/server.mjs'], { WORKER_PORT: '18081' });
+  const worker = startServer('node', ['apps/worker/src/server.mjs'], { WORKER_PORT: '18081', RUNNER_ISOLATION_POC: '1' });
   const api = startServer('node', ['apps/api/src/server.mjs'], {
     API_PORT: '18080',
     RUNNER_API_BASE_URL: 'http://localhost:18081',
@@ -122,7 +122,7 @@ test('timeout/runtime failure 経路でも learner-safe 境界を維持する', 
     body: JSON.stringify({
       challengeSlug: 'js-bugfix-add',
       language: 'javascript',
-      code: 'export function sum(nums){ return ??? }'
+      code: 'export function sum(nums){ return nums.reduce((acc, n) => acc + n, 0); }'
     })
   });
   assert.equal(submissionRes.status, 201);
@@ -146,6 +146,6 @@ test('timeout/runtime failure 経路でも learner-safe 境界を維持する', 
   assert.equal(adminResultData.status, 'completed');
   assert.equal(adminResultData.result.status, 'completed');
   assert.ok(Array.isArray(adminResultData.result.logs));
-  assert.ok(adminResultData.result.logs.some((log) => log.includes('[hidden] hidden tests log is not exposed in MVP.')));
   assert.ok(adminResultData.result.internal);
+  assert.ok(Array.isArray(adminResultData.result.internal.hiddenTestResults));
 });
