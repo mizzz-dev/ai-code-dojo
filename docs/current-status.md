@@ -13,7 +13,7 @@
 - challenge version 管理と publish 状態遷移が運用可能。
 - docs正本（`project-overview` / `current-status` / `active-issues` / `system-overview`）および `docs/logs/` の基盤整備は完了。
 - PR #15 / Issue #14 完了後の Source of Truth 同期方針を反映済み。
-- Issue #37（Runner安全性レビュー）はレビュー記録を完了し、設計フォロー（Issue #44）とADR正式化（Issue #46）を完了。Issue #48 / #50 / #52 / #54 / #56 / #58 / #60 / #62 / #64 は完了。Issue #66 で learner-safe 返却の `result.internal` / `result.logs` 非露出回帰検知テストを進行中。
+- Issue #37（Runner安全性レビュー）はレビュー記録を完了し、設計フォロー（Issue #44）とADR正式化（Issue #46）を完了。Issue #48 / #50 / #52 / #54 / #56 / #58 / #60 / #62 / #64 / #66 は完了。Issue #68 で timeout/runtime failure 経路の hidden由来文字列非露出検証を進行中。
 
 ## 稼働中の基盤
 - 採点は Worker 経由の非同期処理。
@@ -35,7 +35,7 @@
 - Issue/PR 完了時の docs 同期運用は、更新漏れ防止ルールの定着が必要。
 
 ## 優先順位（直近）
-1. Issue #66（learner-safe 返却で `result.internal` / `result.logs` 非露出を integration test で保証）
+1. Issue #68（timeout/runtime failure 経路の hidden由来文字列非露出を integration/E2E で保証）
 2. 正本docsの継続運用定着（Issue/PR完了時の同期ルール徹底）
 3. テスト安定化と運用ドキュメント拡充
 4. 実行隔離・キュー・DBの段階的強化

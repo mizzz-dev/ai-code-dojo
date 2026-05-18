@@ -29,6 +29,14 @@ const fetchSubmissionResultUntilCompleted = async (submissionId, headers = {}) =
   return resultData;
 };
 
+
+const assertLearnerSafeBoundary = (resultData) => {
+  assert.equal(resultData.result.internal, undefined);
+  assert.equal(resultData.result.logs, undefined);
+  const serialized = JSON.stringify(resultData);
+  assert.equal(serialized.includes('[hidden] hidden tests log is not exposed in MVP.'), false);
+};
+
 test('challenge 一覧/詳細, submission 作成/結果取得', async (t) => {
   const worker = startServer('node', ['apps/worker/src/server.mjs'], { WORKER_PORT: '18081' });
   const api = startServer('node', ['apps/api/src/server.mjs'], {
@@ -70,16 +78,14 @@ test('challenge 一覧/詳細, submission 作成/結果取得', async (t) => {
   assert.equal(guestResultData.status, 'completed');
   assert.ok(Array.isArray(guestResultData.result.visibleTests));
   assert.equal(typeof guestResultData.result.hiddenTests.passed, 'boolean');
-  assert.equal(guestResultData.result.internal, undefined);
-  assert.equal(guestResultData.result.logs, undefined);
+  assertLearnerSafeBoundary(guestResultData);
 
   const learnerResultData = await fetchSubmissionResultUntilCompleted(submission.id, {
     'x-web-user': 'learner:secure-learner'
   });
   assert.equal(learnerResultData.status, 'completed');
   assert.ok(Array.isArray(learnerResultData.result.visibleTests));
-  assert.equal(learnerResultData.result.internal, undefined);
-  assert.equal(learnerResultData.result.logs, undefined);
+  assertLearnerSafeBoundary(learnerResultData);
 
   const adminResultData = await fetchSubmissionResultUntilCompleted(submission.id, {
     'x-web-user': 'admin:secure-admin'
@@ -90,4 +96,56 @@ test('challenge 一覧/詳細, submission 作成/結果取得', async (t) => {
   assert.ok(adminResultData.result.internal);
   assert.ok(Array.isArray(adminResultData.result.internal.hiddenTestResults));
   assert.ok(Array.isArray(adminResultData.result.internal.fullTestResults));
+});
+
+
+test('timeout/runtime failure 経路でも learner-safe 境界を維持する', async (t) => {
+  const worker = startServer('node', ['apps/worker/src/server.mjs'], { WORKER_PORT: '18081' });
+  const api = startServer('node', ['apps/api/src/server.mjs'], {
+    API_PORT: '18080',
+    RUNNER_API_BASE_URL: 'http://localhost:18081',
+    ADMIN_PASSWORD: 'secure-admin',
+    LEARNER_PASSWORD: 'secure-learner'
+  });
+
+  t.after(() => {
+    api.kill('SIGKILL');
+    worker.kill('SIGKILL');
+  });
+
+  await waitForHealth('http://localhost:18081/health');
+  await waitForHealth('http://localhost:18080/health');
+
+  const submissionRes = await fetch('http://localhost:18080/api/submissions', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      challengeSlug: 'js-bugfix-add',
+      language: 'javascript',
+      code: 'export function sum(nums){ return ??? }'
+    })
+  });
+  assert.equal(submissionRes.status, 201);
+  const submission = await submissionRes.json();
+
+  const guestResultData = await fetchSubmissionResultUntilCompleted(submission.id);
+  assert.equal(guestResultData.status, 'completed');
+  assert.equal(guestResultData.result.status, 'completed');
+  assertLearnerSafeBoundary(guestResultData);
+
+  const learnerResultData = await fetchSubmissionResultUntilCompleted(submission.id, {
+    'x-web-user': 'learner:secure-learner'
+  });
+  assert.equal(learnerResultData.status, 'completed');
+  assert.equal(learnerResultData.result.status, 'completed');
+  assertLearnerSafeBoundary(learnerResultData);
+
+  const adminResultData = await fetchSubmissionResultUntilCompleted(submission.id, {
+    'x-web-user': 'admin:secure-admin'
+  });
+  assert.equal(adminResultData.status, 'completed');
+  assert.equal(adminResultData.result.status, 'completed');
+  assert.ok(Array.isArray(adminResultData.result.logs));
+  assert.ok(adminResultData.result.logs.some((log) => log.includes('[hidden] hidden tests log is not exposed in MVP.')));
+  assert.ok(adminResultData.result.internal);
 });
