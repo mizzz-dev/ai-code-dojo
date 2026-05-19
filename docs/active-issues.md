@@ -1,43 +1,41 @@
 # active-issues（正本）
 
-最終更新: 2026-05-18
+最終更新: 2026-05-19
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
 
 ## 優先度定義
-- P0: セキュリティ/可用性/学習継続を阻害
+- P0: セキュリティ/可用性/法令順守を阻害
 - P1: 直近スプリントで解決すべき重要課題
 - P2: 改善課題（計画的に対応）
 
 ## 進行中Issue
 
-- #75 Worker障害時の採点停止・再試行・失敗扱い・復旧方針の設計/運用ドキュメント化
+- #65 PR #64 / Issue #63 マージ後の Source of Truth 同期
   - 優先度: P1
-  - 状態: Open（In Progress）
-  - 位置づけ: Issue #73 完了後の Source of Truth 不整合を是正し、PR #74 で追加された post-merge docs sync checklist を実運用で適用したうえで、次の安全性・運用性強化として Worker failure policy を実装前に文書化する。
-  - ゴール: Worker到達不能/実行中断/timeout/runtime failure/infrastructure failure の分類、採点停止条件、再試行可否と最大試行回数、idempotency 方針、learner-safe 境界、admin/internal ログ粒度、queue/DB 本格運用への移行前提を整理する。
-  - 非目的（このIssueでは実施しない）: runner/Worker本体変更、queue実装変更、DB schema/migration/seed変更、hidden tests仕様変更、auth/admin実装変更、API/UI/infra変更、challenge既存version上書き。
+  - 状態: Open（Docs Sync Final Check）
+  - 目的: `current-status` / `active-issues` / logs / ai-prompts を、Issue #63 完了・PR #64 merge 済みの状態に同期する。
+  - 非目的: 実装コード追加、技術スタック確定、DB/API/認証/インフラ設計の確定。
 
 ## Recently Completed
 
-### #73 post Issue #71 docs同期漏れ防止チェックリスト固定化
+### #63 （完了済み）
 - 優先度: P1
 - 状態: 完了
 - 完了日: 2026-05-18
-- 成果物: `docs/runbooks/2026-05-18-post-merge-docs-sync-checklist.md` / `docs/current-status.md` / `docs/active-issues.md` / `docs/logs/2026-05-18-issue-73-post-issue-71-docs-sync-checklist.md` / `docs/ai-prompts/2026-05-18-issue-73-post-issue-71-docs-sync-checklist-codex.md` / `docs/handoff/2026-05-18-issue-73-post-issue-71-docs-sync-checklist-handoff.md`。
-- 補足: PR #74 merged / Issue #73 closed を起点に、merge後 docs 同期チェックリスト運用を標準手順化。
+- 関連PR: #64（merged）
+- 反映内容: main で残存していた「#63 Active 扱い」を解消し、Source of Truth を最新化。
+- 補足: 仕様確定前の実装は行わず、docs 整合のみを対象に運用。
 
-### #71 post Issue #68 docs同期（Source of Truth整合）
-- 優先度: P1
-- 状態: 完了
-- 完了日: 2026-05-18
-- 成果物: `docs/current-status.md` / `docs/active-issues.md` / `docs/logs/2026-05-18-issue-71-post-issue-68-docs-sync.md` / `docs/handoff/2026-05-18-issue-71-post-issue-68-docs-sync-handoff.md` / `docs/ai-prompts/2026-05-18-issue-71-post-issue-68-docs-sync-codex.md`。
-- 補足: PR #72 merged / Issue #71 closed を受け、次タスクとして Issue #73（merge後 docs 同期漏れ防止チェックリスト固定化）へ接続。
+## Next Issue Candidates（高リスク領域）
 
-### #68 timeout/runtime failure 経路で hidden由来文字列が learner-safe 返却に混入しないことを integration/E2E test で保証
-- 優先度: P1
-- 状態: 完了
-- 完了日: 2026-05-18
-- 成果物: `tests/integration/api-flow.test.mjs` / `docs/logs/2026-05-18-issue-68-timeout-runtime-failure-hidden-leak-test.md` / `docs/logs/2026-05-18-issue-68-timeout-runtime-failure-hidden-leak-test-followup.md` / `docs/handoff/2026-05-18-issue-68-timeout-runtime-failure-hidden-leak-test-followup-handoff.md`。
-- 補足: PR #69 のレビュー指摘（構文エラー経路依存）を PR #70 で follow-up 修正し、隔離実行経路を通す検証に更新。
+1. 位置情報/走行履歴のデータ最小化・保持期間・削除要件整理（P0候補）
+2. 交通情報/オービス情報の配信境界と法令・利用規約整合の整理（P0候補）
+3. 画像投稿/コミュニティ機能のモデレーション・通報・監査ログ要件整理（P1候補）
+
+## Branch Cleanup
+
+- PR #64 の head branch: 状態確認保留。
+- 保留理由: docs 同期作業環境では GitHub 側の最終削除状態を確証できないため。
+- 次対応: maintainer が GitHub 上で deleted/active を確認し、必要なら削除実施後に記録を更新する。
