@@ -1,57 +1,46 @@
 # current-status（正本）
 
-最終更新: 2026-05-18
+最終更新: 2026-05-19
 
 ## この文書の目的
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
 
 ## 今の状態（要約）
-- 学習者向け主要導線（一覧/詳細/提出/結果）は実装済み。
-- 認証・認可MVP（learner/adminロール、管理導線保護）は実装済み。
-- ログイン可用性改善（401/502の分離）は実装済み。
-- challenge/submission は SQLite 永続化へ移行済み。
-- challenge version 管理と publish 状態遷移が運用可能。
-- docs正本（`project-overview` / `current-status` / `active-issues` / `system-overview`）および `docs/logs/` の基盤整備は完了。
-- PR #15 / Issue #14 完了後の Source of Truth 同期方針を反映済み。
-- Issue #37（Runner安全性レビュー）はレビュー記録を完了し、設計フォロー（Issue #44）とADR正式化（Issue #46）を完了。Issue #48 / #50 / #52 / #54 / #56 / #58 / #60 / #62 / #64 / #66 / #68 / #71 / #73 は完了。
-- PR #74 で追加された post-merge docs sync checklist を運用適用し、Issue #73 完了後の docs 正本不整合を解消。
-- Issue #75（Worker障害時の採点停止・再試行・失敗扱い・復旧方針の設計/運用ドキュメント化）を進行中として運用開始。
+- RouteGarage はウォーターフォール開発・Issue駆動で進行中。
+- 現在フェーズは要件定義〜基本設計前であり、仕様確定前の実装は行わない。
+- PR #64 は merge 済み、Issue #63 は完了済みとして Source of Truth を同期した。
+- docs正本（`current-status` / `active-issues`）および `docs/logs/` / `docs/ai-prompts/` の証跡運用を継続する。
+- AI生成物は人間レビュー必須の運用を継続する。
 
-## 稼働中の基盤
-- 採点は Worker 経由の非同期処理。
-- API本体で提出コードを直接実行しない。
-- visible/hidden tests は分離運用。
-- hidden tests 詳細は learner-safe レスポンスで非公開。
+## 稼働中の運用基盤
+- Repository内 docs を Source of Truth として扱う。
+- PR本文、Issueコメント、作業ログ、AIプロンプトログ、handoff、各種ドキュメントは日本語で統一する。
+- merge 後は docs 正本同期と branch cleanup 確認を必須化する。
 
 ## 直近完了事項
-- Issue #73（post Issue #71 docs 同期漏れ防止チェックリスト整備）完了。PR #74 merged / Issue #73 closed を docs 正本へ同期。
-- Issue #71（Issue #68 完了後の docs 正本同期と next task の単一化）完了。Issue/PR 状態と docs の整合を復旧し、次タスクを Issue #73 に明確化。
-- Issue #68（timeout/runtime failure 経路の hidden由来文字列非露出検証）完了。PR #69 のレビュー指摘を PR #70 で解消し、隔離実行経路で learner-safe 境界維持を確認。
-- Issue #64（hidden tests / internal artifact / learner-safe 境界レビュー）完了。review/handoff/runbook/risks を整備し、follow-up として Issue #66 を起票。
+- Issue #63 完了後の docs 同期（Issue #65）を実施し、`active-issues` から #63 を除外、Recently Completed へ移動。
+- PR #64 merge 済み状態を `current-status` / `active-issues` / 作業ログへ反映。
 
-## 既知問題（詳細は active-issues を参照）
-- 本番隔離実行基盤は未整備（現行Runnerは簡易実行）。
-- queue とDBは将来の本格運用を見据えた移行余地あり。
-- Worker障害時の再試行/復旧は実装前段階であり、設計方針に基づく段階実装が必要。
+## 既知の高リスク領域（仕様追加は未実施）
+- 位置情報
+- 走行履歴
+- 交通情報
+- オービス情報
+- 画像投稿
+- コミュニティ機能
 
 ## 優先順位（直近）
-1. Issue #75（Worker障害時の採点停止・再試行・失敗扱い・復旧方針の設計/運用ドキュメント化）
-2. 正本docsの継続運用定着（runbook に基づく merge後チェックの習慣化）
-3. テスト安定化と運用ドキュメント拡充
-4. 実行隔離・キュー・DBの段階的強化
+1. 高リスク領域の要件棚卸し Issue（位置情報・走行履歴のデータ境界/保持方針）
+2. 高リスク領域の公開範囲定義 Issue（交通情報・オービス情報の表示/非表示ルール）
+3. 高リスク領域の投稿系統制 Issue（画像投稿・コミュニティ機能のモデレーション/監査ログ方針）
+4. docs 正本運用の継続（merge後同期チェック + branch cleanup記録）
 
-## 触ってはいけない箇所
-- hidden tests公開境界（learner-safe）
-- `/api/admin/*` の認可境界
-- challenge versioning の不変条件（上書き禁止）
-
-## 重要依存関係
-- `ADMIN_PASSWORD` / `LEARNER_PASSWORD`
-- `RUNNER_API_BASE_URL`, `API_BASE_URL`
-- SQLiteファイル `.data/app.db`
+## branch cleanup 状態
+- PR #64 に紐づく作業branchは、削除状況の最終確認が未取得のため「確認保留」。
+- 保留理由: 本Issueは repository docs 同期を主目的とし、GitHub UI 側の branch 削除実行権限/実行結果がこの作業環境からは確証できないため。
+- 対応方針: maintainer が PR #64 の head branch 状態（deleted / active）を確認し、`docs/active-issues.md` の branch cleanup 記録へ追記する。
 
 ## 参照先
 - 進行中Issue: `docs/active-issues.md`
-- 構成概観: `docs/architecture/system-overview.md`
-- 全体方針: `docs/project-overview.md`
-- 作業ログ運用: `docs/logs/README.md`
+- 作業ログ: `docs/logs/2026-05-19-issue-65.md`
+- AIプロンプトログ: `docs/ai-prompts/2026-05-19-issue-65-status-sync.md`
