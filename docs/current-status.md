@@ -6,41 +6,32 @@
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
 
 ## 今の状態（要約）
-- RouteGarage はウォーターフォール開発・Issue駆動で進行中。
-- 現在フェーズは要件定義〜基本設計前であり、仕様確定前の実装は行わない。
-- PR #64 は merge 済み、Issue #63 は完了済みとして Source of Truth を同期した。
-- docs正本（`current-status` / `active-issues`）および `docs/logs/` / `docs/ai-prompts/` の証跡運用を継続する。
-- AI生成物は人間レビュー必須の運用を継続する。
+- ai-code-dojo は、AI生成コードのバグ修正・機能追加を実務フローで学ぶ練習プラットフォームとしてMVP運用を継続中。
+- docs正本（`current-status` / `active-issues`）は ai-code-dojo 文脈を Source of Truth とし、他プロダクト文脈の混入を禁止する。
+- Issue #75（Worker障害時再試行方針）は docs-only で完了済み。
+- Issue #77 は reopen 済みで進行中。目的は Source of Truth 復旧と、Retry state machine / idempotency key / completion guard のADR候補整理。
+- 不変条件（API本体で提出コードを直接実行しない、hidden testsは内部専用、challengeはversion追加方式）を維持する。
 
 ## 稼働中の運用基盤
-- Repository内 docs を Source of Truth として扱う。
-- PR本文、Issueコメント、作業ログ、AIプロンプトログ、handoff、各種ドキュメントは日本語で統一する。
-- merge 後は docs 正本同期と branch cleanup 確認を必須化する。
+- Canonical Source: `README.md` / `docs/project-overview.md` / `docs/current-status.md` / `docs/active-issues.md` / `docs/architecture/system-overview.md`
+- 採点系は API→Worker 非同期連携を維持し、API直接実行は禁止。
+- learner-safe / internal 境界を維持し、hidden tests 詳細は学習者向け返却禁止。
+- PR本文、レビュー文面、運用docsは日本語で統一する。
 
 ## 直近完了事項
-- Issue #63 完了後の docs 同期（Issue #65）を実施し、`active-issues` から #63 を除外、Recently Completed へ移動。
-- PR #64 merge 済み状態を `current-status` / `active-issues` / 作業ログへ反映。
-
-## 既知の高リスク領域（仕様追加は未実施）
-- 位置情報
-- 走行履歴
-- 交通情報
-- オービス情報
-- 画像投稿
-- コミュニティ機能
+- Issue #75（Worker failure retry policy）を完了し、再試行判断・停止条件・監査ログ方針を docs-only で整理。
+- `docs/reports/2026-05-18-worker-failure-retry-policy.md` / `docs/runbooks/2026-05-18-worker-failure-recovery-runbook.md` / `docs/handoff/2026-05-18-issue-75-worker-failure-retry-policy-handoff.md` を正本補助資料として整備。
 
 ## 優先順位（直近）
-1. 高リスク領域の要件棚卸し Issue（位置情報・走行履歴のデータ境界/保持方針）
-2. 高リスク領域の公開範囲定義 Issue（交通情報・オービス情報の表示/非表示ルール）
-3. 高リスク領域の投稿系統制 Issue（画像投稿・コミュニティ機能のモデレーション/監査ログ方針）
-4. docs 正本運用の継続（merge後同期チェック + branch cleanup記録）
+1. Issue #77: 正本docsのSource of Truth復旧（混入文脈の除去）
+2. Issue #77: Retry state machine / idempotency key / completion guard のADR候補整理（docs-only）
+3. 実装着手前に、DB schema/queue運用拡張が必要な論点を別Issueへ分離
 
 ## branch cleanup 状態
-- PR #64 に紐づく作業branchは、削除状況の最終確認が未取得のため「確認保留」。
-- 保留理由: 本Issueは repository docs 同期を主目的とし、GitHub UI 側の branch 削除実行権限/実行結果がこの作業環境からは確証できないため。
-- 対応方針: maintainer が PR #64 の head branch 状態（deleted / active）を確認し、`docs/active-issues.md` の branch cleanup 記録へ追記する。
+- PR #78 に紐づく作業branchの削除有無は、GitHub UI 上の最終状態確認を maintainer へ引き継ぐ。
+- 本作業では repository docs の正本復旧を優先し、branch cleanup 実行自体は非対象。
 
 ## 参照先
 - 進行中Issue: `docs/active-issues.md`
-- 作業ログ: `docs/logs/2026-05-19-issue-65.md`
-- AIプロンプトログ: `docs/ai-prompts/2026-05-19-issue-65-status-sync.md`
+- 設計根拠（Issue #75）: `docs/reports/2026-05-18-worker-failure-retry-policy.md`
+- runbook: `docs/runbooks/2026-05-18-worker-failure-recovery-runbook.md`
