@@ -1,6 +1,6 @@
 # current-status（正本）
 
-最終更新: 2026-05-20
+最終更新: 2026-05-20（Issue #83反映）
 
 ## この文書の目的
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
@@ -18,12 +18,14 @@
 - PR本文、レビュー文面、運用docsは日本語で統一する。
 
 ## 直近完了事項
+- Issue #83（Retry state machine 状態語彙・状態遷移確定）を docs-only で完了し、`retry_pending` / `infra_failed` / terminal states / learner-safe 境界 / completion guard の扱いを確定。
 - Issue #77（Source of Truth 復旧 + Retry state machine/idempotency ADR候補整理）を完了し、PR #80 merge 後の欠落ログ補完を含めて正本docs同期を完了。
 - `docs/reports/2026-05-19-retry-state-machine-idempotency-adr-candidate.md` / `docs/logs/2026-05-19-issue-77-source-of-truth-recovery-and-idempotency-adr.md` / `docs/handoff/2026-05-19-issue-77-source-of-truth-recovery-and-idempotency-adr-handoff.md` を正本補助資料として整備。
 - Issue #75（Worker failure retry policy）完了時に整備した retry 方針・runbook 資産を継続利用可能な状態で維持。
 
 ## 優先順位（直近）
-1. 次Issue候補（最優先1件）: Retry state machine の状態遷移確定Issueを起票し、`queued/running/retry_pending/infra_failed/passed/failed` と completion guard の採用語彙を確定する（理由: 実装着手前に状態語彙を固定しないと、API/Worker/DB/監査ログの変更境界が曖昧になり、review可能な最小差分を維持できないため）。
+1. Issue #83（Retry state machine 状態語彙・状態遷移確定）は docs-only で完了。採用語彙を `queued/running/retry_pending/infra_failed/passed/failed` に固定し、completion guard は状態ではなく完了保存時の一意完了制約として扱う方針を確定した。
+2. 次Issue候補（最優先）: idempotency key / completion guard 実装分離Issue（理由: 語彙確定後に API/Worker/DB 変更責務を分離して最小差分実装へ進むため）。
 
 ## branch cleanup 状態
 - PR #78 に紐づく作業branchの削除有無は、GitHub UI 上の最終状態確認を maintainer へ引き継ぐ。
@@ -31,5 +33,6 @@
 
 ## 参照先
 - 進行中Issue: `docs/active-issues.md`
-- 設計根拠（Issue #77）: `docs/reports/2026-05-19-retry-state-machine-idempotency-adr-candidate.md`
+- 設計根拠（Issue #83）: `docs/reports/2026-05-20-retry-state-machine-state-vocabulary-decision.md`
+- ADR候補整理（Issue #77）: `docs/reports/2026-05-19-retry-state-machine-idempotency-adr-candidate.md`
 - runbook: `docs/runbooks/2026-05-18-worker-failure-recovery-runbook.md`
