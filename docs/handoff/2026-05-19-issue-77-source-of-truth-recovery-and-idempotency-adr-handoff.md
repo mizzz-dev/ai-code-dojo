@@ -15,3 +15,7 @@
 1. ADR候補をレビューし、採用案の範囲（状態遷移・重複完了防止・監査ログ）を確定。
 2. DB拡張要否（retry_count / idempotency_key / completion_guard）を別Issue化。
 3. queue運用論点（visibility timeout / DLQ / backoff）を別Issueで設計確定。
+
+
+## 関連ログ
+- `docs/logs/2026-05-19-issue-77-source-of-truth-recovery-and-idempotency-adr.md`

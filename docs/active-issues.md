@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-19
+最終更新: 2026-05-20
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -14,10 +14,11 @@
 
 - #77 Source of Truth 復旧 + Retry state machine/idempotency ADR候補整理
   - 優先度: P1
-  - 状態: Open（reopened）
+  - 状態: Open（reopened / 作業ログ補完中）
   - 目的:
     - `docs/current-status.md` / `docs/active-issues.md` を ai-code-dojo 文脈へ復旧
     - Retry state machine / idempotency key / completion guard を docs-only で整理
+    - 欠落していた作業ログファイルを追加し、参照整合を復旧
   - 非目的:
     - runner/Worker/queue実装変更
     - DB schema/migration/seed変更

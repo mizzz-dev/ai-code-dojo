@@ -1,6 +1,6 @@
 # current-status（正本）
 
-最終更新: 2026-05-19
+最終更新: 2026-05-20
 
 ## この文書の目的
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
@@ -9,7 +9,7 @@
 - ai-code-dojo は、AI生成コードのバグ修正・機能追加を実務フローで学ぶ練習プラットフォームとしてMVP運用を継続中。
 - docs正本（`current-status` / `active-issues`）は ai-code-dojo 文脈を Source of Truth とし、他プロダクト文脈の混入を禁止する。
 - Issue #75（Worker障害時再試行方針）は docs-only で完了済み。
-- Issue #77 は reopen 済みで進行中。目的は Source of Truth 復旧と、Retry state machine / idempotency key / completion guard のADR候補整理。
+- Issue #77 は reopen 済みで進行中。目的は Source of Truth 復旧と、Retry state machine / idempotency key / completion guard のADR候補整理、および欠落していた作業ログの補完。
 - 不変条件（API本体で提出コードを直接実行しない、hidden testsは内部専用、challengeはversion追加方式）を維持する。
 
 ## 稼働中の運用基盤
@@ -24,8 +24,9 @@
 
 ## 優先順位（直近）
 1. Issue #77: 正本docsのSource of Truth復旧（混入文脈の除去）
-2. Issue #77: Retry state machine / idempotency key / completion guard のADR候補整理（docs-only）
-3. 実装着手前に、DB schema/queue運用拡張が必要な論点を別Issueへ分離
+2. Issue #77: 欠落ログ `docs/logs/2026-05-19-issue-77-source-of-truth-recovery-and-idempotency-adr.md` の補完と参照整合の復旧
+3. Issue #77: Retry state machine / idempotency key / completion guard のADR候補整理（docs-only）
+4. 実装着手前に、DB schema/queue運用拡張が必要な論点を別Issueへ分離
 
 ## branch cleanup 状態
 - PR #78 に紐づく作業branchの削除有無は、GitHub UI 上の最終状態確認を maintainer へ引き継ぐ。
