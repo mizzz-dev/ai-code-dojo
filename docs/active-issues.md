@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-20
+最終更新: 2026-05-20（Issue #83反映）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -14,7 +14,19 @@
 
 - （なし）
 
+※ Issue #83 は docs-only 完了済み（2026-05-20）。
+
 ## Recently Completed
+
+### #83 （完了済み）
+- 優先度: P1
+- 状態: Closed / Completed（docs-only）
+- 完了日: 2026-05-20
+- 関連資料:
+  - `docs/reports/2026-05-20-retry-state-machine-state-vocabulary-decision.md`
+  - `docs/logs/2026-05-20-issue-83-retry-state-machine-state-vocabulary.md`
+  - `docs/handoff/2026-05-20-issue-83-retry-state-machine-state-vocabulary-handoff.md`
+- 反映内容: Retry state machine の状態語彙と状態遷移を確定し、`retry_pending` / `infra_failed` の使い分け、terminal states、completion guard（状態ではなく保存制約）を整理。
 
 ### #77 （完了済み）
 - 優先度: P1
@@ -38,8 +50,12 @@
 
 ## Next Issue Candidates
 
-1. Retry state machine の状態遷移確定Issue（P1・次着手推奨）
-   - 優先理由: idempotency key / completion guard / queue運用拡張の前提となる状態語彙を先に固定し、後続Issueの差分境界を明確化するため。
+1. idempotency key 導入Issue（P1・次着手推奨）
+   - 優先理由: Issue #83 で確定した状態語彙を重複実行抑止へ接続し、API/Worker/DB の責務分離を維持するため。
+2. completion guard 実装Issue（P1）
+   - 優先理由: 終端状態（passed/failed/infra_failed）の一意完了制約を実装で担保し、重複完了を防止するため。
+3. DB拡張Issue（P2）
+   - 優先理由: retry_count 等の観測性カラム・制約を段階導入し、監査ログと整合させるため。
 
 ## Branch Cleanup
 
