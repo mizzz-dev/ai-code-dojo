@@ -12,19 +12,19 @@
 
 ## 進行中Issue
 
-- #77 Source of Truth 復旧 + Retry state machine/idempotency ADR候補整理
-  - 優先度: P1
-  - 状態: Open（reopened / 作業ログ補完中）
-  - 目的:
-    - `docs/current-status.md` / `docs/active-issues.md` を ai-code-dojo 文脈へ復旧
-    - Retry state machine / idempotency key / completion guard を docs-only で整理
-    - 欠落していた作業ログファイルを追加し、参照整合を復旧
-  - 非目的:
-    - runner/Worker/queue実装変更
-    - DB schema/migration/seed変更
-    - auth/admin/API/UI/infra変更
+- （なし）
 
 ## Recently Completed
+
+### #77 （完了済み）
+- 優先度: P1
+- 状態: Closed / Completed
+- 完了日: 2026-05-20（PR #80 merged 後の正本docs同期完了）
+- 関連資料:
+  - `docs/reports/2026-05-19-retry-state-machine-idempotency-adr-candidate.md`
+  - `docs/logs/2026-05-19-issue-77-source-of-truth-recovery-and-idempotency-adr.md`
+  - `docs/handoff/2026-05-19-issue-77-source-of-truth-recovery-and-idempotency-adr-handoff.md`
+- 反映内容: Source of Truth 復旧、欠落ログ補完、Retry state machine / idempotency key / completion guard のADR候補整理を docs-only で完了。
 
 ### #75 （完了済み）
 - 優先度: P1
@@ -38,9 +38,8 @@
 
 ## Next Issue Candidates
 
-1. Retry state machine の実装化に向けた状態遷移確定Issue（P1候補）
-2. idempotency key / completion guard 導入時のDB拡張検討Issue（P1候補）
-3. queue本格運用（visibility timeout / DLQ / backoff）設計Issue（P1候補）
+1. Retry state machine の状態遷移確定Issue（P1・次着手推奨）
+   - 優先理由: idempotency key / completion guard / queue運用拡張の前提となる状態語彙を先に固定し、後続Issueの差分境界を明確化するため。
 
 ## Branch Cleanup
 
