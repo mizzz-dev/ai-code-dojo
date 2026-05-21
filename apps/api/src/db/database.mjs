@@ -14,17 +14,24 @@ const ensureDataDir = () => {
 };
 
 const ensureSubmissionColumns = (database) => {
-  const columns = database.prepare("PRAGMA table_info(submissions)").all();
+  const columns = database.prepare('PRAGMA table_info(submissions)').all();
   const hasAttempt = columns.some((column) => column.name === 'grading_attempt');
   const hasKey = columns.some((column) => column.name === 'attempt_idempotency_key');
 
   if (!hasAttempt) {
-    database.exec("ALTER TABLE submissions ADD COLUMN grading_attempt INTEGER NOT NULL DEFAULT 1");
+    database.exec('ALTER TABLE submissions ADD COLUMN grading_attempt INTEGER NOT NULL DEFAULT 1');
   }
 
   if (!hasKey) {
-    database.exec("ALTER TABLE submissions ADD COLUMN attempt_idempotency_key TEXT");
+    database.exec('ALTER TABLE submissions ADD COLUMN attempt_idempotency_key TEXT');
   }
+};
+
+const ensureSubmissionIndexes = (database) => {
+  database.exec(`
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_attempt_unique ON submissions(id, grading_attempt);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_attempt_key_unique ON submissions(attempt_idempotency_key);
+  `);
 };
 
 const migrateSchema = (database) => {
@@ -62,9 +69,10 @@ const migrateSchema = (database) => {
     );
 
     CREATE INDEX IF NOT EXISTS idx_challenges_slug_status ON challenges(slug, status);
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_attempt_unique ON submissions(id, grading_attempt);
-    CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_attempt_key_unique ON submissions(attempt_idempotency_key);
   `);
+
+  ensureSubmissionColumns(database);
+  ensureSubmissionIndexes(database);
 };
 
 const migrateLegacyJsonIfNeeded = (database) => {
@@ -89,8 +97,6 @@ const migrateLegacyJsonIfNeeded = (database) => {
       insertVersion.run(version.id, version.challengeId, version.version, version.createdAt, JSON.stringify(payload));
     }
   }
-
-  ensureSubmissionColumns(database);
 
   const submissionCount = database.prepare('SELECT COUNT(*) AS count FROM submissions').get().count;
   if (submissionCount === 0 && existsSync(LEGACY_SUBMISSIONS_PATH)) {

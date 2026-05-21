@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-21（Issue #87反映）
+最終更新: 2026-05-21（Issue #89反映）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -19,6 +19,16 @@
 
 ## Recently Completed
 
+
+### #89 （完了済み）
+- 優先度: P1
+- 状態: Closed / Completed
+- 完了日: 2026-05-21
+- 関連資料:
+  - `docs/logs/2026-05-21-issue-89-sqlite-attempt-migration-order.md`
+  - `docs/ai-prompts/2026-05-21-issue-89-sqlite-attempt-migration-order-codex.md`
+  - `docs/handoff/2026-05-21-issue-89-sqlite-attempt-migration-order-handoff.md`
+- 反映内容: SQLite既存DBの `submissions` 旧スキーマで、attempt列追加前にUNIQUE index作成が走る順序不整合を解消。列追加後にindex作成するよう migration を整理し、再現unit testを追加。
 
 ### #87 （完了済み）
 - 優先度: P1
