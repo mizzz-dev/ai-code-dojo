@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-20（Issue #85反映）
+最終更新: 2026-05-21（Issue #87反映）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -12,11 +12,24 @@
 
 ## 進行中Issue
 
-- （なし）
-
-※ Issue #85 は docs-only 完了済み（2026-05-20）。
+- #88 completion guard 実装（提案）
+  - 優先度: P1
+  - 目的: 終端保存の一意化（submission単位）を実装し、重複完了を抑止する。
+  - 依存: Issue #87（attempt単位 idempotency key 実装）完了。
 
 ## Recently Completed
+
+
+### #87 （完了済み）
+- 優先度: P1
+- 状態: Closed / Completed
+- 完了日: 2026-05-21
+- 関連資料:
+  - `docs/logs/2026-05-21-issue-87-idempotency-key-implementation.md`
+  - `docs/ai-prompts/2026-05-21-issue-87-idempotency-key-implementation-codex.md`
+  - `docs/handoff/2026-05-21-issue-87-idempotency-key-implementation-handoff.md`
+- 反映内容: `submission + attempt` 単位の idempotency key 相当を API/DB/Worker に実装。初回attempt=1、retry向けattempt increment関数、Workerのattempt/key照合を追加。completion guard は未実装で分離維持。
+
 
 ### #85 （完了済み）
 - 優先度: P1

@@ -19,7 +19,11 @@ export const createSubmissionAndEnqueue = async (body) => {
   const response = await fetch(`${workerUrl}/jobs`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ submissionId: submission.id })
+    body: JSON.stringify({
+      submissionId: submission.id,
+      gradingAttempt: submission.gradingAttempt,
+      attemptIdempotencyKey: submission.attemptIdempotencyKey
+    })
   });
 
   if (!response.ok) {
