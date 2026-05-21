@@ -1,6 +1,6 @@
 # current-status（正本）
 
-最終更新: 2026-05-21（Issue #87反映）
+最終更新: 2026-05-21（Issue #89反映）
 
 ## この文書の目的
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
@@ -8,7 +8,7 @@
 ## 今の状態（要約）
 - ai-code-dojo は、AI生成コードのバグ修正・機能追加を実務フローで学ぶ練習プラットフォームとしてMVP運用を継続中。
 - docs正本（`current-status` / `active-issues`）は ai-code-dojo 文脈を Source of Truth とし、他プロダクト文脈の混入を禁止する。
-- Issue #85 / PR #86 で確定した設計を前提に、Issue #87 で attempt単位 idempotency key 相当（`submission + attempt`）を API/DB/Worker へ最小実装した。
+- Issue #85 / PR #86 で確定した設計を前提に、Issue #87 の attempt単位 idempotency key 実装後に、Issue #89 でSQLite既存DB migration順序不整合（列追加前index作成）を修正した。
 - 不変条件（API本体で提出コードを直接実行しない、hidden testsは内部専用、challengeはversion追加方式）を維持する。
 
 ## 稼働中の運用基盤
@@ -18,6 +18,7 @@
 - PR本文、レビュー文面、運用docsは日本語で統一する。
 
 ## 直近完了事項
+- Issue #89（SQLite migration順序修正）を完了し、既存DBで `grading_attempt` / `attempt_idempotency_key` 列追加後に index 作成が行われるよう修正。旧スキーマ再現unit testを追加して起動不能リスクを解消。
 - Issue #87（attempt単位 idempotency key 実装）を完了し、初回attempt=1保存、Workerへのattempt/key連携、重複・古いattempt実行抑止を実装した（completion guardは未実装のまま分離維持）。
 - Issue #83（Retry state machine 状態語彙・状態遷移確定）を docs-only で完了し、`retry_pending` / `infra_failed` / terminal states / learner-safe 境界 / completion guard の扱いを確定。
 - Issue #77（Source of Truth 復旧 + Retry state machine/idempotency ADR候補整理）を完了し、PR #80 merge 後の欠落ログ補完を含めて正本docs同期を完了。
