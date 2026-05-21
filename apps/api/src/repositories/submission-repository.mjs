@@ -3,6 +3,8 @@ import { getDb } from '../db/database.mjs';
 
 const now = () => new Date().toISOString();
 
+export const createAttemptIdempotencyKey = (submissionId, attempt) => `${submissionId}:attempt:${attempt}`;
+
 const mapRow = (row) => ({
   id: row.id,
   challengeSlug: row.challenge_slug,
@@ -11,7 +13,9 @@ const mapRow = (row) => ({
   status: row.status,
   createdAt: row.created_at,
   updatedAt: row.updated_at,
-  result: row.result_json ? JSON.parse(row.result_json) : null
+  result: row.result_json ? JSON.parse(row.result_json) : null,
+  gradingAttempt: row.grading_attempt ?? 1,
+  attemptIdempotencyKey: row.attempt_idempotency_key ?? null
 });
 
 export const createSubmission = async (input) => {
@@ -24,11 +28,14 @@ export const createSubmission = async (input) => {
     status: 'queued',
     createdAt: timestamp,
     updatedAt: timestamp,
-    result: null
+    result: null,
+    gradingAttempt: 1
   };
 
-  getDb().prepare('INSERT INTO submissions (id, challenge_slug, language, code, status, created_at, updated_at, result_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?)')
-    .run(submission.id, submission.challengeSlug, submission.language, submission.code, submission.status, submission.createdAt, submission.updatedAt, null);
+  submission.attemptIdempotencyKey = createAttemptIdempotencyKey(submission.id, submission.gradingAttempt);
+
+  getDb().prepare('INSERT INTO submissions (id, challenge_slug, language, code, status, created_at, updated_at, result_json, grading_attempt, attempt_idempotency_key) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .run(submission.id, submission.challengeSlug, submission.language, submission.code, submission.status, submission.createdAt, submission.updatedAt, null, submission.gradingAttempt, submission.attemptIdempotencyKey);
 
   return submission;
 };
@@ -48,8 +55,22 @@ export const updateSubmission = async (id, patch) => {
     updatedAt: now()
   };
 
-  getDb().prepare('UPDATE submissions SET challenge_slug = ?, language = ?, code = ?, status = ?, updated_at = ?, result_json = ? WHERE id = ?')
-    .run(updated.challengeSlug, updated.language, updated.code, updated.status, updated.updatedAt, updated.result ? JSON.stringify(updated.result) : null, id);
+  getDb().prepare('UPDATE submissions SET challenge_slug = ?, language = ?, code = ?, status = ?, updated_at = ?, result_json = ?, grading_attempt = ?, attempt_idempotency_key = ? WHERE id = ?')
+    .run(updated.challengeSlug, updated.language, updated.code, updated.status, updated.updatedAt, updated.result ? JSON.stringify(updated.result) : null, updated.gradingAttempt, updated.attemptIdempotencyKey, id);
 
   return updated;
+};
+
+
+export const startRetryAttempt = async (id) => {
+  const current = await getSubmission(id);
+  if (!current) return null;
+
+  const nextAttempt = (current.gradingAttempt ?? 1) + 1;
+  return updateSubmission(id, {
+    status: 'queued',
+    gradingAttempt: nextAttempt,
+    attemptIdempotencyKey: createAttemptIdempotencyKey(id, nextAttempt),
+    result: null
+  });
 };

@@ -27,9 +27,15 @@ const parseBody = async (req) => {
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
 };
 
-const processSubmission = async (submissionId) => {
+const processSubmission = async ({ submissionId, gradingAttempt, attemptIdempotencyKey }) => {
   const submission = await getSubmission(submissionId);
   if (!submission) return;
+
+  if (typeof gradingAttempt === 'number' && attemptIdempotencyKey) {
+    if (submission.gradingAttempt !== gradingAttempt || submission.attemptIdempotencyKey !== attemptIdempotencyKey) {
+      return;
+    }
+  }
 
   await updateSubmission(submissionId, { status: 'running' });
 
@@ -94,10 +100,14 @@ const server = http.createServer(async (req, res) => {
     }
 
     setImmediate(() => {
-      processSubmission(body.submissionId);
+      processSubmission({
+        submissionId: body.submissionId,
+        gradingAttempt: body.gradingAttempt,
+        attemptIdempotencyKey: body.attemptIdempotencyKey
+      });
     });
 
-    return sendJson(res, 202, { accepted: true, submissionId: body.submissionId });
+    return sendJson(res, 202, { accepted: true, submissionId: body.submissionId, gradingAttempt: body.gradingAttempt });
   }
 
   return sendJson(res, 404, { error: 'not found' });

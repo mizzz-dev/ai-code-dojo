@@ -13,6 +13,20 @@ const ensureDataDir = () => {
   if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true });
 };
 
+const ensureSubmissionColumns = (database) => {
+  const columns = database.prepare("PRAGMA table_info(submissions)").all();
+  const hasAttempt = columns.some((column) => column.name === 'grading_attempt');
+  const hasKey = columns.some((column) => column.name === 'attempt_idempotency_key');
+
+  if (!hasAttempt) {
+    database.exec("ALTER TABLE submissions ADD COLUMN grading_attempt INTEGER NOT NULL DEFAULT 1");
+  }
+
+  if (!hasKey) {
+    database.exec("ALTER TABLE submissions ADD COLUMN attempt_idempotency_key TEXT");
+  }
+};
+
 const migrateSchema = (database) => {
   database.exec(`
     CREATE TABLE IF NOT EXISTS challenges (
@@ -42,10 +56,14 @@ const migrateSchema = (database) => {
       status TEXT NOT NULL,
       created_at TEXT NOT NULL,
       updated_at TEXT NOT NULL,
-      result_json TEXT
+      result_json TEXT,
+      grading_attempt INTEGER NOT NULL DEFAULT 1,
+      attempt_idempotency_key TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_challenges_slug_status ON challenges(slug, status);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_attempt_unique ON submissions(id, grading_attempt);
+    CREATE UNIQUE INDEX IF NOT EXISTS idx_submissions_attempt_key_unique ON submissions(attempt_idempotency_key);
   `);
 };
 
@@ -71,6 +89,8 @@ const migrateLegacyJsonIfNeeded = (database) => {
       insertVersion.run(version.id, version.challengeId, version.version, version.createdAt, JSON.stringify(payload));
     }
   }
+
+  ensureSubmissionColumns(database);
 
   const submissionCount = database.prepare('SELECT COUNT(*) AS count FROM submissions').get().count;
   if (submissionCount === 0 && existsSync(LEGACY_SUBMISSIONS_PATH)) {
