@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-20（Issue #83反映）
+最終更新: 2026-05-20（Issue #85反映）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -14,9 +14,20 @@
 
 - （なし）
 
-※ Issue #83 は docs-only 完了済み（2026-05-20）。
+※ Issue #85 は docs-only 完了済み（2026-05-20）。
 
 ## Recently Completed
+
+### #85 （完了済み）
+- 優先度: P1
+- 状態: Closed / Completed（docs-only）
+- 完了日: 2026-05-20
+- 関連資料:
+  - `docs/reports/2026-05-20-duplicate-grading-prevention-design.md`
+  - `docs/logs/2026-05-20-issue-85-duplicate-grading-prevention-design.md`
+  - `docs/ai-prompts/2026-05-20-issue-85-duplicate-grading-prevention-design-codex.md`
+  - `docs/handoff/2026-05-20-issue-85-duplicate-grading-prevention-design-handoff.md`
+- 反映内容: 重複ジョブ投入・重複実行・重複完了の定義、idempotency key 相当（attempt単位）と completion guard（submission終端一意化）の責務分離、API/Worker/DB 境界を整理。
 
 ### #83 （完了済み）
 - 優先度: P1
@@ -38,24 +49,14 @@
   - `docs/handoff/2026-05-19-issue-77-source-of-truth-recovery-and-idempotency-adr-handoff.md`
 - 反映内容: Source of Truth 復旧、欠落ログ補完、Retry state machine / idempotency key / completion guard のADR候補整理を docs-only で完了。
 
-### #75 （完了済み）
-- 優先度: P1
-- 状態: Closed / Completed
-- 完了日: 2026-05-18
-- 関連資料:
-  - `docs/reports/2026-05-18-worker-failure-retry-policy.md`
-  - `docs/runbooks/2026-05-18-worker-failure-recovery-runbook.md`
-  - `docs/handoff/2026-05-18-issue-75-worker-failure-retry-policy-handoff.md`
-- 反映内容: Worker障害時の再試行可否、停止条件、監査ログ最小要件を docs-only で整理。
-
 ## Next Issue Candidates
 
-1. idempotency key 導入Issue（P1・次着手推奨）
-   - 優先理由: Issue #83 で確定した状態語彙を重複実行抑止へ接続し、API/Worker/DB の責務分離を維持するため。
+1. idempotency key 実装Issue（P1・次着手推奨）
+   - 優先理由: Issue #85 で確定した attempt 単位識別の方針を API/Worker/DB で実装担保するため。
 2. completion guard 実装Issue（P1）
    - 優先理由: 終端状態（passed/failed/infra_failed）の一意完了制約を実装で担保し、重複完了を防止するため。
 3. DB拡張Issue（P2）
-   - 優先理由: retry_count 等の観測性カラム・制約を段階導入し、監査ログと整合させるため。
+   - 優先理由: attempt / idempotency key / guard 判定を保持するカラム・制約を段階導入し、監査ログと整合させるため。
 
 ## Branch Cleanup
 
