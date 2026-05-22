@@ -10,23 +10,37 @@ export const validateSubmissionInput = (input) => {
 
 const workerUrl = process.env.RUNNER_API_BASE_URL ?? 'http://localhost:8081';
 
+export const enqueueSubmissionAttempt = async ({ submissionId, gradingAttempt, attemptIdempotencyKey }) => {
+  try {
+    const response = await fetch(`${workerUrl}/jobs`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        submissionId,
+        gradingAttempt,
+        attemptIdempotencyKey
+      })
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
 export const createSubmissionAndEnqueue = async (body) => {
   if (!validateSubmissionInput(body)) {
     return { error: '不正なsubmission入力です。challengeSlug/language/codeを確認してください。', statusCode: 400 };
   }
 
   const submission = await createSubmission(body);
-  const response = await fetch(`${workerUrl}/jobs`, {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({
-      submissionId: submission.id,
-      gradingAttempt: submission.gradingAttempt,
-      attemptIdempotencyKey: submission.attemptIdempotencyKey
-    })
+  const enqueued = await enqueueSubmissionAttempt({
+    submissionId: submission.id,
+    gradingAttempt: submission.gradingAttempt,
+    attemptIdempotencyKey: submission.attemptIdempotencyKey
   });
 
-  if (!response.ok) {
+  if (!enqueued) {
     return { error: 'Workerへのジョブ投入に失敗しました。', statusCode: 502 };
   }
 
@@ -41,6 +55,15 @@ export const getSubmissionResult = async (id, auth = { role: 'guest' }) => {
 
   const visibleTests = (submission.result?.testResults ?? []).filter((test) => test.visibility === 'visible');
   const hiddenSummary = (submission.result?.testResults ?? []).filter((test) => test.visibility === 'hidden');
+  const isAdmin = auth.role === 'admin';
+  const learnerSafeStatus = submission.status === 'retry_pending'
+    ? 'retrying'
+    : submission.status === 'infra_failed'
+      ? 'failed'
+      : submission.status;
+  const learnerSafeResultStatus = submission.result?.status === 'infra_failed'
+    ? 'failed'
+    : submission.result?.status;
 
   return {
     statusCode: 200,
@@ -48,15 +71,15 @@ export const getSubmissionResult = async (id, auth = { role: 'guest' }) => {
       id: submission.id,
       challengeSlug: submission.challengeSlug,
       language: submission.language,
-      status: submission.status,
+      status: isAdmin ? submission.status : learnerSafeStatus,
       createdAt: submission.createdAt,
       updatedAt: submission.updatedAt,
       result: submission.result
         ? {
-            status: submission.result.status,
+            status: isAdmin ? submission.result.status : learnerSafeResultStatus,
             score: submission.result.score,
-            logs: auth.role === 'admin' ? submission.result.logs : undefined,
-            internal: auth.role === 'admin' ? {
+            logs: isAdmin ? submission.result.logs : undefined,
+            internal: isAdmin ? {
               hiddenTestResults: (submission.result?.testResults ?? []).filter((test) => test.visibility === 'hidden'),
               fullTestResults: submission.result?.testResults ?? []
             } : undefined,

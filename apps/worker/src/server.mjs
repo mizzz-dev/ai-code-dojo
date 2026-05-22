@@ -2,12 +2,14 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { getChallengeBasePath } from '../../api/src/repositories/challenge-repository.mjs';
-import { getSubmission, updateSubmission } from '../../api/src/repositories/submission-repository.mjs';
+import { getSubmission, startRetryAttempt, updateSubmission } from '../../api/src/repositories/submission-repository.mjs';
+import { enqueueSubmissionAttempt } from '../../api/src/services/submission-service.mjs';
 import { runJavaScriptChallenge, runJavaScriptChallengeViaIsolatedJob } from './services/js-runner.mjs';
 
 const port = Number(process.env.WORKER_PORT ?? 8081);
 const useIsolationPoc = process.env.RUNNER_ISOLATION_POC === '1';
 const isProduction = process.env.NODE_ENV === 'production';
+const maxInfraRetryAttempts = Number(process.env.WORKER_MAX_INFRA_RETRY_ATTEMPTS ?? 2);
 
 if (useIsolationPoc && isProduction) {
   throw new Error('RUNNER_ISOLATION_POC must not be enabled in production.');
@@ -25,6 +27,50 @@ const parseBody = async (req) => {
   for await (const chunk of req) chunks.push(chunk);
   if (chunks.length === 0) return null;
   return JSON.parse(Buffer.concat(chunks).toString('utf8'));
+};
+
+const shouldRetryInfraFailure = (attempt) => attempt < maxInfraRetryAttempts;
+
+const handleInfrastructureFailure = async ({ submissionId, submission, error }) => {
+  await updateSubmission(submissionId, { status: 'retry_pending' });
+
+  if (!shouldRetryInfraFailure(submission.gradingAttempt ?? 1)) {
+    await updateSubmission(submissionId, {
+      status: 'infra_failed',
+      result: {
+        status: 'infra_failed',
+        score: 0,
+        durationMs: 0,
+        logs: [error.message],
+        testResults: [],
+        artifacts: []
+      }
+    });
+    return;
+  }
+
+  const retriedSubmission = await startRetryAttempt(submissionId);
+  if (!retriedSubmission) return;
+
+  const enqueued = await enqueueSubmissionAttempt({
+    submissionId,
+    gradingAttempt: retriedSubmission.gradingAttempt,
+    attemptIdempotencyKey: retriedSubmission.attemptIdempotencyKey
+  });
+
+  if (!enqueued) {
+    await updateSubmission(submissionId, {
+      status: 'infra_failed',
+      result: {
+        status: 'infra_failed',
+        score: 0,
+        durationMs: 0,
+        logs: ['Retryジョブの再投入に失敗しました。'],
+        testResults: [],
+        artifacts: []
+      }
+    });
+  }
 };
 
 const processSubmission = async ({ submissionId, gradingAttempt, attemptIdempotencyKey }) => {
@@ -76,17 +122,7 @@ const processSubmission = async ({ submissionId, gradingAttempt, attemptIdempote
 
     await updateSubmission(submissionId, { status: 'completed', result: normalizedResult });
   } catch (error) {
-    await updateSubmission(submissionId, {
-      status: 'failed',
-      result: {
-        status: 'failed',
-        score: 0,
-        durationMs: 0,
-        logs: [error.message],
-        testResults: [],
-        artifacts: []
-      }
-    });
+    await handleInfrastructureFailure({ submissionId, submission, error });
   }
 };
 

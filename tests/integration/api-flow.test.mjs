@@ -18,9 +18,9 @@ const waitForHealth = async (url, retries = 30) => {
 
 const startServer = (cmd, args, env) => spawn(cmd, args, { env: { ...process.env, ...env }, stdio: 'ignore' });
 
-const fetchSubmissionResultUntilCompleted = async (submissionId, headers = {}) => {
+const fetchSubmissionResultUntilCompleted = async (submissionId, headers = {}, retries = 80) => {
   let resultData;
-  for (let i = 0; i < 30; i += 1) {
+  for (let i = 0; i < retries; i += 1) {
     const resultRes = await fetch(`http://localhost:18080/api/submissions/${submissionId}`, { headers });
     resultData = await resultRes.json();
     if (resultData.result) return resultData;
@@ -148,4 +148,52 @@ test('timeout/runtime failure 経路でも learner-safe 境界を維持する', 
   assert.ok(Array.isArray(adminResultData.result.logs));
   assert.ok(adminResultData.result.internal);
   assert.ok(Array.isArray(adminResultData.result.internal.hiddenTestResults));
+});
+
+test('infrastructure failure は retry_pending -> queued 再投入後に infra_failed へ到達する', async (t) => {
+  const worker = startServer('node', ['apps/worker/src/server.mjs'], {
+    WORKER_PORT: '18081',
+    WORKER_MAX_INFRA_RETRY_ATTEMPTS: '2',
+    RUNNER_API_BASE_URL: 'http://localhost:18081'
+  });
+  const api = startServer('node', ['apps/api/src/server.mjs'], {
+    API_PORT: '18080',
+    RUNNER_API_BASE_URL: 'http://localhost:18081',
+    ADMIN_PASSWORD: 'secure-admin',
+    LEARNER_PASSWORD: 'secure-learner'
+  });
+
+  t.after(() => {
+    api.kill('SIGKILL');
+    worker.kill('SIGKILL');
+  });
+
+  await waitForHealth('http://localhost:18081/health');
+  await waitForHealth('http://localhost:18080/health');
+
+  const submissionRes = await fetch('http://localhost:18080/api/submissions', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({
+      challengeSlug: 'missing-challenge',
+      language: 'javascript',
+      code: 'module.exports=1;'
+    })
+  });
+  assert.equal(submissionRes.status, 201);
+  const submission = await submissionRes.json();
+
+  const learnerResultData = await fetchSubmissionResultUntilCompleted(submission.id, {
+    'x-web-user': 'learner:secure-learner'
+  });
+  assert.equal(learnerResultData.status, 'failed');
+  assert.equal(learnerResultData.result.status, 'failed');
+  assertLearnerSafeBoundary(learnerResultData);
+
+  const adminResultData = await fetchSubmissionResultUntilCompleted(submission.id, {
+    'x-web-user': 'admin:secure-admin'
+  });
+  assert.equal(adminResultData.status, 'infra_failed');
+  assert.equal(adminResultData.result.status, 'infra_failed');
+  assert.ok(Array.isArray(adminResultData.result.logs));
 });
