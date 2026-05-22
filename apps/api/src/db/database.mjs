@@ -17,6 +17,7 @@ const ensureSubmissionColumns = (database) => {
   const columns = database.prepare('PRAGMA table_info(submissions)').all();
   const hasAttempt = columns.some((column) => column.name === 'grading_attempt');
   const hasKey = columns.some((column) => column.name === 'attempt_idempotency_key');
+  const hasCompletionGuardAt = columns.some((column) => column.name === 'completion_guard_at');
 
   if (!hasAttempt) {
     database.exec('ALTER TABLE submissions ADD COLUMN grading_attempt INTEGER NOT NULL DEFAULT 1');
@@ -24,6 +25,10 @@ const ensureSubmissionColumns = (database) => {
 
   if (!hasKey) {
     database.exec('ALTER TABLE submissions ADD COLUMN attempt_idempotency_key TEXT');
+  }
+
+  if (!hasCompletionGuardAt) {
+    database.exec('ALTER TABLE submissions ADD COLUMN completion_guard_at TEXT');
   }
 };
 
@@ -65,7 +70,8 @@ const migrateSchema = (database) => {
       updated_at TEXT NOT NULL,
       result_json TEXT,
       grading_attempt INTEGER NOT NULL DEFAULT 1,
-      attempt_idempotency_key TEXT
+      attempt_idempotency_key TEXT,
+      completion_guard_at TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_challenges_slug_status ON challenges(slug, status);
