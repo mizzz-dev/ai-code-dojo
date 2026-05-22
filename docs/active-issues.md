@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-21（Issue #89反映）
+最終更新: 2026-05-22（Issue #91反映）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -12,12 +12,19 @@
 
 ## 進行中Issue
 
-- #88 completion guard 実装（提案）
-  - 優先度: P1
-  - 目的: 終端保存の一意化（submission単位）を実装し、重複完了を抑止する。
-  - 依存: Issue #87（attempt単位 idempotency key 実装）完了。
+- （現在の進行中P1はなし。次着手は retry state machine 本統合を想定）
 
 ## Recently Completed
+
+### #91 （完了済み）
+- 優先度: P1
+- 状態: Closed / Completed
+- 完了日: 2026-05-22
+- 関連資料:
+  - `docs/logs/2026-05-22-issue-91-completion-guard.md`
+  - `docs/ai-prompts/2026-05-22-issue-91-completion-guard-codex.md`
+  - `docs/handoff/2026-05-22-issue-91-completion-guard-handoff.md`
+- 反映内容: submission単位 completion guard を実装。終端結果（passed/failed/infra_failed）保存を一度だけ許可し、後続終端保存を idempotent no-op 化。Workerの重複完了経路も無害化。
 
 
 ### #89 （完了済み）
@@ -74,12 +81,12 @@
 
 ## Next Issue Candidates
 
-1. idempotency key 実装Issue（P1・次着手推奨）
-   - 優先理由: Issue #85 で確定した attempt 単位識別の方針を API/Worker/DB で実装担保するため。
-2. completion guard 実装Issue（P1）
-   - 優先理由: 終端状態（passed/failed/infra_failed）の一意完了制約を実装で担保し、重複完了を防止するため。
-3. DB拡張Issue（P2）
-   - 優先理由: attempt / idempotency key / guard 判定を保持するカラム・制約を段階導入し、監査ログと整合させるため。
+1. retry state machine 本統合Issue（P1・次着手推奨）
+   - 優先理由: `retry_pending -> queued` の実導線と attempt increment を一貫動作させるため。
+2. queue運用改善Issue（P1）
+   - 優先理由: visibility timeout / DLQ / backoff を運用要件に合わせて強化するため。
+3. 監査ログ整備Issue（P2）
+   - 優先理由: completion guard の重複完了判定を必要最小限の監査情報として可視化するため。
 
 ## Branch Cleanup
 

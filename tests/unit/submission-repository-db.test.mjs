@@ -26,6 +26,33 @@ test('submission repository persists create/update/get in db', async () => {
   assert.equal(loaded.status, 'completed');
   assert.equal(loaded.result.score, 100);
 
+  const guarded = await repo.createSubmission({ challengeSlug: 'js-bugfix-add', language: 'javascript', code: 'module.exports=2;' });
+  const first = await repo.updateSubmission(guarded.id, {
+    status: 'completed',
+    result: { status: 'passed', score: 100, durationMs: 5, logs: [], testResults: [] }
+  });
+  assert.equal(first.result.status, 'passed');
+  assert.ok(first.completionGuardAt);
+
+  const second = await repo.updateSubmission(guarded.id, {
+    status: 'failed',
+    result: { status: 'failed', score: 0, durationMs: 3, logs: [], testResults: [] }
+  });
+  assert.equal(second.result.status, 'passed');
+  assert.equal(second.completionGuardAt, first.completionGuardAt);
+
+  const nonTerminal = await repo.createSubmission({ challengeSlug: 'js-bugfix-add', language: 'javascript', code: 'module.exports=3;' });
+  const running2 = await repo.updateSubmission(nonTerminal.id, { status: 'running' });
+  assert.equal(running2.status, 'running');
+  assert.equal(running2.completionGuardAt, null);
+
+  const terminal = await repo.updateSubmission(nonTerminal.id, {
+    status: 'completed',
+    result: { status: 'infra_failed', score: 0, durationMs: 0, logs: [], testResults: [] }
+  });
+  assert.equal(terminal.result.status, 'infra_failed');
+  assert.ok(terminal.completionGuardAt);
+
   process.chdir(prev);
   await rm(dir, { recursive: true, force: true });
 });

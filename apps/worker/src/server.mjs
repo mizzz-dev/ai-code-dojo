@@ -37,6 +37,10 @@ const processSubmission = async ({ submissionId, gradingAttempt, attemptIdempote
     }
   }
 
+  if (submission.completionGuardAt) {
+    return;
+  }
+
   await updateSubmission(submissionId, { status: 'running' });
 
   try {

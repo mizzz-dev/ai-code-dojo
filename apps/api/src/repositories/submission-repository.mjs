@@ -2,6 +2,7 @@ import crypto from 'node:crypto';
 import { getDb } from '../db/database.mjs';
 
 const now = () => new Date().toISOString();
+const TERMINAL_RESULT_STATUSES = new Set(['passed', 'failed', 'infra_failed']);
 
 export const createAttemptIdempotencyKey = (submissionId, attempt) => `${submissionId}:attempt:${attempt}`;
 
@@ -15,7 +16,8 @@ const mapRow = (row) => ({
   updatedAt: row.updated_at,
   result: row.result_json ? JSON.parse(row.result_json) : null,
   gradingAttempt: row.grading_attempt ?? 1,
-  attemptIdempotencyKey: row.attempt_idempotency_key ?? null
+  attemptIdempotencyKey: row.attempt_idempotency_key ?? null,
+  completionGuardAt: row.completion_guard_at ?? null
 });
 
 export const createSubmission = async (input) => {
@@ -49,14 +51,34 @@ export const updateSubmission = async (id, patch) => {
   const current = await getSubmission(id);
   if (!current) return null;
 
+  const isTerminalCompletion = patch?.result && TERMINAL_RESULT_STATUSES.has(patch.result.status);
+
+  if (isTerminalCompletion) {
+    const timestamp = now();
+    const updatedAt = timestamp;
+    const completionGuardAt = timestamp;
+    const resultJson = JSON.stringify(patch.result);
+    const status = patch.status ?? current.status;
+
+    const write = getDb().prepare(
+      'UPDATE submissions SET status = ?, updated_at = ?, result_json = ?, completion_guard_at = ? WHERE id = ? AND completion_guard_at IS NULL'
+    ).run(status, updatedAt, resultJson, completionGuardAt, id);
+
+    if (write.changes === 0) {
+      return current;
+    }
+
+    return getSubmission(id);
+  }
+
   const updated = {
     ...current,
     ...patch,
     updatedAt: now()
   };
 
-  getDb().prepare('UPDATE submissions SET challenge_slug = ?, language = ?, code = ?, status = ?, updated_at = ?, result_json = ?, grading_attempt = ?, attempt_idempotency_key = ? WHERE id = ?')
-    .run(updated.challengeSlug, updated.language, updated.code, updated.status, updated.updatedAt, updated.result ? JSON.stringify(updated.result) : null, updated.gradingAttempt, updated.attemptIdempotencyKey, id);
+  getDb().prepare('UPDATE submissions SET challenge_slug = ?, language = ?, code = ?, status = ?, updated_at = ?, result_json = ?, grading_attempt = ?, attempt_idempotency_key = ?, completion_guard_at = ? WHERE id = ?')
+    .run(updated.challengeSlug, updated.language, updated.code, updated.status, updated.updatedAt, updated.result ? JSON.stringify(updated.result) : null, updated.gradingAttempt, updated.attemptIdempotencyKey, updated.completionGuardAt, id);
 
   return updated;
 };
