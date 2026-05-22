@@ -1,6 +1,6 @@
 # current-status（正本）
 
-最終更新: 2026-05-22（Issue #93反映）
+最終更新: 2026-05-22（Issue #XX retry state machine 本統合反映）
 
 ## この文書の目的
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
@@ -20,6 +20,7 @@
 ## 直近完了事項
 - Issue #91（completion guard実装）を完了し、同一submissionの終端結果（passed/failed/infra_failed）保存を一度だけ許可する一意完了制約を導入。重複終端保存は idempotent no-op とし、Worker側でも終端済みsubmissionを無害化する早期returnを追加。
 - Issue #93（completion guard retry互換修正）を完了し、terminal update no-op時の返却をDB最新行へ修正。retry attempt開始時の `completion_guard_at` 解除を導入し、Workerの早期returnが正しいretryを阻害しないよう是正。
+- Issue #XX（retry state machine本統合）として、Workerの infrastructure failure 経路で `running -> retry_pending -> queued` 再投入導線を実装。再投入時は `startRetryAttempt` を通じて attempt increment / idempotency key 更新 / completion guard 解除を一貫適用し、試行上限到達時は `infra_failed` 終端へ遷移するよう統合。
 - Issue #89（SQLite migration順序修正）を完了し、既存DBで `grading_attempt` / `attempt_idempotency_key` 列追加後に index 作成が行われるよう修正。旧スキーマ再現unit testを追加して起動不能リスクを解消。
 - Issue #87（attempt単位 idempotency key 実装）を完了し、初回attempt=1保存、Workerへのattempt/key連携、重複・古いattempt実行抑止を実装した（completion guardは未実装のまま分離維持）。
 - Issue #83（Retry state machine 状態語彙・状態遷移確定）を docs-only で完了し、`retry_pending` / `infra_failed` / terminal states / learner-safe 境界 / completion guard の扱いを確定。
@@ -27,9 +28,9 @@
 - Issue #75（Worker failure retry policy）完了時に整備した retry 方針・runbook 資産を継続利用可能な状態で維持。
 
 ## 優先順位（直近）
-1. 次Issue候補（最優先）: retry state machine への本統合（`retry_pending -> queued` で attempt increment を実導線へ接続）。
-2. 次Issue候補: queue運用改善（visibility timeout / DLQ / backoff）。
-3. 次Issue候補: completion guard の運用監査ログ粒度拡張（必要最小限の内部監査情報整備）。
+1. 次Issue候補: queue運用改善（visibility timeout / DLQ / backoff）。
+2. 次Issue候補: completion guard の運用監査ログ粒度拡張（必要最小限の内部監査情報整備）。
+3. 次Issue候補: retry判断理由（failure category / decision reason）の永続監査ログ拡張。
 
 ## branch cleanup 状態
 - PR #78 に紐づく作業branchの削除有無は、GitHub UI 上の最終状態確認を maintainer へ引き継ぐ。

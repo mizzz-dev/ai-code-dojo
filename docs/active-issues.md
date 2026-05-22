@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-22（Issue #93反映）
+最終更新: 2026-05-22（Issue #XX retry state machine 本統合反映）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -12,9 +12,19 @@
 
 ## 進行中Issue
 
-- （現在の進行中P1はなし。次着手は retry state machine 本統合を想定）
+- （現在の進行中P1はなし。次着手は queue運用改善Issue を想定）
 
 ## Recently Completed
+
+### #XX （完了済み）
+- 優先度: P1
+- 状態: Closed / Completed
+- 完了日: 2026-05-22
+- 関連資料:
+  - `docs/logs/2026-05-22-issue-XX-retry-state-machine-integration.md`
+  - `docs/ai-prompts/2026-05-22-issue-XX-retry-state-machine-integration-codex.md`
+  - `docs/handoff/2026-05-22-issue-XX-retry-state-machine-integration-handoff.md`
+- 反映内容: Worker の infrastructure failure 経路に `running -> retry_pending -> queued` 再投入導線を統合。再投入時の attempt increment / idempotency key 更新 / completion guard 解除を `startRetryAttempt` で一貫化し、試行上限到達時は `infra_failed` へ終端化。learner-safe では `retrying/failed` へ抽象化を維持。
 
 ### #93 （完了済み）
 - 優先度: P1
@@ -91,12 +101,12 @@
 
 ## Next Issue Candidates
 
-1. retry state machine 本統合Issue（P1・次着手推奨）
-   - 優先理由: `retry_pending -> queued` の実導線と attempt increment を一貫動作させるため。
-2. queue運用改善Issue（P1）
+1. queue運用改善Issue（P1）
    - 優先理由: visibility timeout / DLQ / backoff を運用要件に合わせて強化するため。
-3. 監査ログ整備Issue（P2）
+2. 監査ログ整備Issue（P2）
    - 優先理由: completion guard の重複完了判定を必要最小限の監査情報として可視化するため。
+3. retry監査情報拡張Issue（P2）
+   - 優先理由: failure category / retry decision reason を照会可能にし、問い合わせ一次回答速度を向上させるため。
 
 ## Branch Cleanup
 
