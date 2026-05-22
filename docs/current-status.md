@@ -1,6 +1,6 @@
 # current-status（正本）
 
-最終更新: 2026-05-22（Issue #91反映）
+最終更新: 2026-05-22（Issue #93反映）
 
 ## この文書の目的
 「今どこまで実装済みか」を短時間で把握するための現況スナップショット。
@@ -19,6 +19,7 @@
 
 ## 直近完了事項
 - Issue #91（completion guard実装）を完了し、同一submissionの終端結果（passed/failed/infra_failed）保存を一度だけ許可する一意完了制約を導入。重複終端保存は idempotent no-op とし、Worker側でも終端済みsubmissionを無害化する早期returnを追加。
+- Issue #93（completion guard retry互換修正）を完了し、terminal update no-op時の返却をDB最新行へ修正。retry attempt開始時の `completion_guard_at` 解除を導入し、Workerの早期returnが正しいretryを阻害しないよう是正。
 - Issue #89（SQLite migration順序修正）を完了し、既存DBで `grading_attempt` / `attempt_idempotency_key` 列追加後に index 作成が行われるよう修正。旧スキーマ再現unit testを追加して起動不能リスクを解消。
 - Issue #87（attempt単位 idempotency key 実装）を完了し、初回attempt=1保存、Workerへのattempt/key連携、重複・古いattempt実行抑止を実装した（completion guardは未実装のまま分離維持）。
 - Issue #83（Retry state machine 状態語彙・状態遷移確定）を docs-only で完了し、`retry_pending` / `infra_failed` / terminal states / learner-safe 境界 / completion guard の扱いを確定。

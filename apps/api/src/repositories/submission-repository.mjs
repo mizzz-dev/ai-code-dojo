@@ -65,7 +65,7 @@ export const updateSubmission = async (id, patch) => {
     ).run(status, updatedAt, resultJson, completionGuardAt, id);
 
     if (write.changes === 0) {
-      return current;
+      return getSubmission(id);
     }
 
     return getSubmission(id);
@@ -93,6 +93,7 @@ export const startRetryAttempt = async (id) => {
     status: 'queued',
     gradingAttempt: nextAttempt,
     attemptIdempotencyKey: createAttemptIdempotencyKey(id, nextAttempt),
-    result: null
+    result: null,
+    completionGuardAt: null
   });
 };
