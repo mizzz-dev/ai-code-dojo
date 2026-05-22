@@ -41,6 +41,9 @@ test('submission repository persists create/update/get in db', async () => {
   assert.equal(second.result.status, 'passed');
   assert.equal(second.completionGuardAt, first.completionGuardAt);
 
+  const latestFromDb = await repo.getSubmission(guarded.id);
+  assert.deepEqual(second, latestFromDb);
+
   const nonTerminal = await repo.createSubmission({ challengeSlug: 'js-bugfix-add', language: 'javascript', code: 'module.exports=3;' });
   const running2 = await repo.updateSubmission(nonTerminal.id, { status: 'running' });
   assert.equal(running2.status, 'running');
@@ -52,6 +55,23 @@ test('submission repository persists create/update/get in db', async () => {
   });
   assert.equal(terminal.result.status, 'infra_failed');
   assert.ok(terminal.completionGuardAt);
+
+  const retried = await repo.startRetryAttempt(nonTerminal.id);
+  assert.equal(retried.status, 'queued');
+  assert.equal(retried.result, null);
+  assert.equal(retried.completionGuardAt, null);
+  assert.equal(retried.gradingAttempt, 2);
+  assert.equal(retried.attemptIdempotencyKey, repo.createAttemptIdempotencyKey(nonTerminal.id, 2));
+
+  const retryRunning = await repo.updateSubmission(nonTerminal.id, { status: 'running' });
+  assert.equal(retryRunning.status, 'running');
+
+  const retryTerminal = await repo.updateSubmission(nonTerminal.id, {
+    status: 'completed',
+    result: { status: 'failed', score: 0, durationMs: 1, logs: [], testResults: [] }
+  });
+  assert.equal(retryTerminal.result.status, 'failed');
+  assert.ok(retryTerminal.completionGuardAt);
 
   process.chdir(prev);
   await rm(dir, { recursive: true, force: true });

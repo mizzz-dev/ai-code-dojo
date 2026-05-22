@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-22（Issue #91反映）
+最終更新: 2026-05-22（Issue #93反映）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -15,6 +15,16 @@
 - （現在の進行中P1はなし。次着手は retry state machine 本統合を想定）
 
 ## Recently Completed
+
+### #93 （完了済み）
+- 優先度: P1
+- 状態: Closed / Completed
+- 完了日: 2026-05-22
+- 関連資料:
+  - `docs/logs/2026-05-22-issue-93-completion-guard-retry-compat.md`
+  - `docs/ai-prompts/2026-05-22-issue-93-completion-guard-retry-compat-codex.md`
+  - `docs/handoff/2026-05-22-issue-93-completion-guard-retry-compat-handoff.md`
+- 反映内容: completion guard の終端保存一意化を維持したまま、terminal update no-op時返却をDB最新行へ修正。`startRetryAttempt` で `completion_guard_at` を解除し、retry attempt が Worker で即時returnされないよう互換性を回復。
 
 ### #91 （完了済み）
 - 優先度: P1
