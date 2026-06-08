@@ -19,11 +19,12 @@ const waitForHealth = async (url, retries = 30) => {
 const startServer = (cmd, args, env) => spawn(cmd, args, { env: { ...process.env, ...env }, stdio: 'ignore' });
 
 const fetchSubmissionResultUntilCompleted = async (submissionId, headers = {}, retries = 80) => {
+  const terminalStatuses = new Set(['completed', 'failed', 'infra_failed']);
   let resultData;
   for (let i = 0; i < retries; i += 1) {
     const resultRes = await fetch(`http://localhost:18080/api/submissions/${submissionId}`, { headers });
     resultData = await resultRes.json();
-    if (resultData.result) return resultData;
+    if (resultData.result && terminalStatuses.has(resultData.status)) return resultData;
     await sleep(100);
   }
   return resultData;

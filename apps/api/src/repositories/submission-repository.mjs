@@ -81,8 +81,12 @@ export const updateSubmission = async (id, patch) => {
     updatedAt: now()
   };
 
-  getDb().prepare('UPDATE submissions SET challenge_slug = ?, language = ?, code = ?, status = ?, updated_at = ?, result_json = ?, grading_attempt = ?, attempt_idempotency_key = ?, completion_guard_at = ? WHERE id = ?')
+  const write = getDb().prepare('UPDATE submissions SET challenge_slug = ?, language = ?, code = ?, status = ?, updated_at = ?, result_json = ?, grading_attempt = ?, attempt_idempotency_key = ?, completion_guard_at = ? WHERE id = ? AND completion_guard_at IS NULL')
     .run(updated.challengeSlug, updated.language, updated.code, updated.status, updated.updatedAt, updated.result ? JSON.stringify(updated.result) : null, updated.gradingAttempt, updated.attemptIdempotencyKey, updated.completionGuardAt, id);
+
+  if (write.changes === 0) {
+    return getSubmission(id);
+  }
 
   return updated;
 };
