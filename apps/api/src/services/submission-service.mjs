@@ -8,11 +8,11 @@ export const validateSubmissionInput = (input) => {
   return true;
 };
 
-const workerUrl = process.env.RUNNER_API_BASE_URL ?? 'http://localhost:8081';
+const getDefaultWorkerUrl = () => process.env.RUNNER_API_BASE_URL ?? 'http://localhost:8081';
 
-export const enqueueSubmissionAttempt = async ({ submissionId, gradingAttempt, attemptIdempotencyKey }) => {
+export const enqueueSubmissionAttempt = async ({ submissionId, gradingAttempt, attemptIdempotencyKey, runnerApiBaseUrl = getDefaultWorkerUrl() }) => {
   try {
-    const response = await fetch(`${workerUrl}/jobs`, {
+    const response = await fetch(`${runnerApiBaseUrl}/jobs`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({

@@ -1,4 +1,4 @@
-# 2026-05-22 Issue #XX retry state machine integration prompt（Codex）
+# 2026-05-22 PR #95 retry state machine integration prompt（Codex）
 
 ## 指示要約
 - `docs/ai-protocol/PROMPT.txt` の不変条件を最優先で遵守する。

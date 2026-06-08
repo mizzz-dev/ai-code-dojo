@@ -49,12 +49,9 @@ test('submission repository persists create/update/get in db', async () => {
   assert.equal(running2.status, 'running');
   assert.equal(running2.completionGuardAt, null);
 
-  const terminal = await repo.updateSubmission(nonTerminal.id, {
-    status: 'completed',
-    result: { status: 'infra_failed', score: 0, durationMs: 0, logs: [], testResults: [] }
-  });
-  assert.equal(terminal.result.status, 'infra_failed');
-  assert.ok(terminal.completionGuardAt);
+  const retryPending = await repo.updateSubmission(nonTerminal.id, { status: 'retry_pending' });
+  assert.equal(retryPending.status, 'retry_pending');
+  assert.equal(retryPending.completionGuardAt, null);
 
   const retried = await repo.startRetryAttempt(nonTerminal.id);
   assert.equal(retried.status, 'queued');
@@ -72,6 +69,14 @@ test('submission repository persists create/update/get in db', async () => {
   });
   assert.equal(retryTerminal.result.status, 'failed');
   assert.ok(retryTerminal.completionGuardAt);
+
+  const terminalRetry = await repo.startRetryAttempt(nonTerminal.id);
+  assert.equal(terminalRetry, null);
+
+  const terminalOverwrite = await repo.updateSubmission(nonTerminal.id, { status: 'retry_pending' });
+  assert.equal(terminalOverwrite.status, 'completed');
+  assert.equal(terminalOverwrite.result.status, 'failed');
+  assert.equal(terminalOverwrite.completionGuardAt, retryTerminal.completionGuardAt);
 
   process.chdir(prev);
   await rm(dir, { recursive: true, force: true });

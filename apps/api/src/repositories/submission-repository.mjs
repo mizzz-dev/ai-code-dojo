@@ -2,7 +2,7 @@ import crypto from 'node:crypto';
 import { getDb } from '../db/database.mjs';
 
 const now = () => new Date().toISOString();
-const TERMINAL_RESULT_STATUSES = new Set(['passed', 'failed', 'infra_failed']);
+const TERMINAL_RESULT_STATUSES = new Set(['completed', 'passed', 'failed', 'infra_failed']);
 
 export const createAttemptIdempotencyKey = (submissionId, attempt) => `${submissionId}:attempt:${attempt}`;
 
@@ -71,6 +71,10 @@ export const updateSubmission = async (id, patch) => {
     return getSubmission(id);
   }
 
+  if (current.completionGuardAt) {
+    return current;
+  }
+
   const updated = {
     ...current,
     ...patch,
@@ -86,7 +90,7 @@ export const updateSubmission = async (id, patch) => {
 
 export const startRetryAttempt = async (id) => {
   const current = await getSubmission(id);
-  if (!current) return null;
+  if (!current || current.completionGuardAt) return null;
 
   const nextAttempt = (current.gradingAttempt ?? 1) + 1;
   return updateSubmission(id, {
