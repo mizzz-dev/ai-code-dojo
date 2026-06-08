@@ -36,3 +36,36 @@ test('learner-safe で infra_failed/retry_pending を抽象化する', async () 
   process.chdir(prev);
   await rm(dir, { recursive: true, force: true });
 });
+
+
+test('retry enqueue は呼び出し側が指定したWorker URLを優先する', async () => {
+  const service = await import('../../apps/api/src/services/submission-service.mjs');
+  const originalFetch = globalThis.fetch;
+  const originalRunnerUrl = process.env.RUNNER_API_BASE_URL;
+  const requestedUrls = [];
+
+  process.env.RUNNER_API_BASE_URL = 'http://localhost:65530';
+  globalThis.fetch = async (url) => {
+    requestedUrls.push(url);
+    return { ok: true };
+  };
+
+  try {
+    const enqueued = await service.enqueueSubmissionAttempt({
+      submissionId: 'sub-1',
+      gradingAttempt: 2,
+      attemptIdempotencyKey: 'sub-1:attempt:2',
+      runnerApiBaseUrl: 'http://localhost:18082'
+    });
+
+    assert.equal(enqueued, true);
+    assert.deepEqual(requestedUrls, ['http://localhost:18082/jobs']);
+  } finally {
+    globalThis.fetch = originalFetch;
+    if (originalRunnerUrl === undefined) {
+      delete process.env.RUNNER_API_BASE_URL;
+    } else {
+      process.env.RUNNER_API_BASE_URL = originalRunnerUrl;
+    }
+  }
+});

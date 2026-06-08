@@ -10,7 +10,7 @@
 ## 実施方針
 - Worker内retry再投入はAPI用環境変数に依存せず、Worker自己再投入用の明示設定または `WORKER_PORT` 由来URLを使う。
 - API enqueue helperは既存のAPI呼び出し互換を維持しつつ、呼び出し側からURLを渡せるようにする。
-- repositoryのcompletion guardを、終端結果保存だけでなく終端後の非終端上書き抑止にも使う。
+- repositoryのcompletion guardを、終端結果保存だけでなく終端後の非終端上書き抑止にも使い、DB更新条件で競合時の no-op を担保する。
 - unit/integration test と正本docsを同期更新する。
 
 ## 制約

@@ -6,7 +6,7 @@
 ## 完了内容
 - Workerのretry再投入先を `WORKER_RETRY_ENQUEUE_BASE_URL` または実待受 `WORKER_PORT` 由来URLに統一。
 - API用enqueue helperは既存既定値を維持しつつ、Workerから明示URLを渡せるように変更。
-- `completion_guard_at` 設定済みsubmissionへの非終端更新を no-op 化。
+- `completion_guard_at` 設定済みsubmissionへの非終端更新を no-op 化し、DB更新条件でも終端後の非終端上書きを防止。
 - 終端済みsubmissionでは `startRetryAttempt` が `null` を返すようにし、終端後のretry再投入を止めた。
 - 旧番号プレースホルダをPR #95 / Issue #96に補正し、旧番号プレースホルダを含む資料名は `pr-95` 資料名へ移行。
 

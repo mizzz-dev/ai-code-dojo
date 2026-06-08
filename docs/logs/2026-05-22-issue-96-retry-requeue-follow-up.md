@@ -9,7 +9,7 @@
 ## 実装内容
 - APIのenqueue helperに、呼び出し側が再投入先URLを明示できる引数を追加。
 - Workerのretry再投入では `WORKER_RETRY_ENQUEUE_BASE_URL` があればそれを優先し、未設定時は `WORKER_PORT` から `http://localhost:<port>` を組み立てる。
-- repository更新で、終端保存済みsubmissionに対する非終端patchをDBへ反映しないようにした。
+- repository更新で、終端保存済みsubmissionに対する非終端patchをDBへ反映しないようにし、DB更新条件にも `completion_guard_at IS NULL` を付けて同一attemptの重複ジョブが終端直後に非終端状態へ戻す競合を抑止した。
 - `startRetryAttempt` は終端保存済みsubmissionでは `null` を返し、retry再投入の後続処理を進めない。
 
 ## テスト
