@@ -152,13 +152,12 @@ test('timeout/runtime failure 経路でも learner-safe 境界を維持する', 
 
 test('infrastructure failure は retry_pending -> queued 再投入後に infra_failed へ到達する', async (t) => {
   const worker = startServer('node', ['apps/worker/src/server.mjs'], {
-    WORKER_PORT: '18081',
-    WORKER_MAX_INFRA_RETRY_ATTEMPTS: '2',
-    RUNNER_API_BASE_URL: 'http://localhost:18081'
+    WORKER_PORT: '18082',
+    WORKER_MAX_INFRA_RETRY_ATTEMPTS: '2'
   });
   const api = startServer('node', ['apps/api/src/server.mjs'], {
     API_PORT: '18080',
-    RUNNER_API_BASE_URL: 'http://localhost:18081',
+    RUNNER_API_BASE_URL: 'http://localhost:18082',
     ADMIN_PASSWORD: 'secure-admin',
     LEARNER_PASSWORD: 'secure-learner'
   });
@@ -168,7 +167,7 @@ test('infrastructure failure は retry_pending -> queued 再投入後に infra_f
     worker.kill('SIGKILL');
   });
 
-  await waitForHealth('http://localhost:18081/health');
+  await waitForHealth('http://localhost:18082/health');
   await waitForHealth('http://localhost:18080/health');
 
   const submissionRes = await fetch('http://localhost:18080/api/submissions', {

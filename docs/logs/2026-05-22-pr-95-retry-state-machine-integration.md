@@ -1,4 +1,4 @@
-# 2026-05-22 Issue #XX retry state machine 本統合ログ
+# 2026-05-22 PR #95 retry state machine 本統合ログ
 
 ## 概要
 - `running -> retry_pending -> queued` の再投入導線を Worker に実装した。

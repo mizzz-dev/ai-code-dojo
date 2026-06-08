@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-05-22（Issue #XX retry state machine 本統合反映）
+最終更新: 2026-05-22（Issue #96 retry再投入導線 follow-up 反映）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -16,14 +16,24 @@
 
 ## Recently Completed
 
-### #XX （完了済み）
+### #96 （完了済み）
 - 優先度: P1
 - 状態: Closed / Completed
 - 完了日: 2026-05-22
 - 関連資料:
-  - `docs/logs/2026-05-22-issue-XX-retry-state-machine-integration.md`
-  - `docs/ai-prompts/2026-05-22-issue-XX-retry-state-machine-integration-codex.md`
-  - `docs/handoff/2026-05-22-issue-XX-retry-state-machine-integration-handoff.md`
+  - `docs/logs/2026-05-22-issue-96-retry-requeue-follow-up.md`
+  - `docs/ai-prompts/2026-05-22-issue-96-retry-requeue-follow-up-codex.md`
+  - `docs/handoff/2026-05-22-issue-96-retry-requeue-follow-up-handoff.md`
+- 反映内容: PR #95 merge後のP1 follow-upとして、Workerのretry再投入先を実待受 `WORKER_PORT` または明示 `WORKER_RETRY_ENQUEUE_BASE_URL` と整合させ、終端済みsubmissionを `retry_pending` など非終端状態で上書きしないよう completion guard を補強。旧番号プレースホルダを PR #95 / Issue #96 の追跡可能な表記へ補正。
+
+### PR #95 （完了済み）
+- 優先度: P1
+- 状態: Merged / Completed
+- 完了日: 2026-05-22
+- 関連資料:
+  - `docs/logs/2026-05-22-pr-95-retry-state-machine-integration.md`
+  - `docs/ai-prompts/2026-05-22-pr-95-retry-state-machine-integration-codex.md`
+  - `docs/handoff/2026-05-22-pr-95-retry-state-machine-integration-handoff.md`
 - 反映内容: Worker の infrastructure failure 経路に `running -> retry_pending -> queued` 再投入導線を統合。再投入時の attempt increment / idempotency key 更新 / completion guard 解除を `startRetryAttempt` で一貫化し、試行上限到達時は `infra_failed` へ終端化。learner-safe では `retrying/failed` へ抽象化を維持。
 
 ### #93 （完了済み）

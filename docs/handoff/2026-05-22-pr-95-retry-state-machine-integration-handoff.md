@@ -1,4 +1,4 @@
-# Issue #XX retry state machine integration handoff（2026-05-22）
+# PR #95 retry state machine integration handoff（2026-05-22）
 
 ## 目的
 - retry state machine の本統合として `retry_pending -> queued` 再投入導線を実装し、attempt/key/guard 整合を実運用コードへ接続する。
