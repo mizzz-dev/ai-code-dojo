@@ -4,6 +4,7 @@ import path from 'node:path';
 import { getChallengeBasePath } from '../../api/src/repositories/challenge-repository.mjs';
 import {
   claimSubmissionForProcessing,
+  finalizeQueuedAttemptAsInfraFailed,
   getSubmission,
   heartbeatSubmissionProcessing,
   listQueuedSubmissions,
@@ -127,17 +128,18 @@ const handleInfrastructureFailure = async ({ submissionId, submission, error }) 
   });
 
   if (!enqueued) {
-    await updateSubmissionForAttempt(submissionId, {
-      status: 'infra_failed',
-      result: {
+    await finalizeQueuedAttemptAsInfraFailed(
+      submissionId,
+      {
         status: 'infra_failed',
         score: 0,
         durationMs: 0,
         logs: ['Retryジョブの再投入に失敗しました。'],
         testResults: [],
         artifacts: []
-      }
-    }, getExpectedAttempt(retriedSubmission));
+      },
+      getExpectedAttempt(retriedSubmission)
+    );
   }
 };
 
