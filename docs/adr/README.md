@@ -1,6 +1,6 @@
 # adr
 
-最終更新: 2026-05-13
+最終更新: 2026-07-22
 
 ## 目的
 このディレクトリの保管対象を定義し、情報の散逸を防ぐ。
@@ -9,3 +9,10 @@
 - ファイル名は `YYYY-MM-DD-<topic>.md` を基本とする。
 - 先頭に「目的 / 背景 / 決定事項 / 未確定事項（必要時）」を記載する。
 - 正本と重複する説明は避け、必要時は正本リンクを貼る。
+
+## ADR一覧
+
+- `2026-07-22-stale-running-lease-recovery.md`
+  - stale `running` submissionのlease / heartbeat / attempt fencing / recovery方針
+  - 関連Issue: #101
+  - 詳細設計: `docs/reports/2026-07-22-stale-running-lease-recovery-design.md`
