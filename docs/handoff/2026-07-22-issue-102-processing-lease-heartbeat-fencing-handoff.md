@@ -7,7 +7,7 @@ submission claimへprocessing leaseとheartbeatを追加し、Workerのheartbeat
 ## Current State
 
 - GitHub Issue #102: Open / In Progress
-- GitHub PR #104: Draft
+- GitHub PR #104: Draft（CI成功、Ready化前）
 - Linear mirror: MIZ-27 / In Progress
 - Branch: `feat/submission-processing-lease-heartbeat`
 - 前提設計: Issue #101 / PR #103
@@ -25,6 +25,8 @@ submission claimへprocessing leaseとheartbeatを追加し、Workerのheartbeat
 - migration / repository / config / integration test追加・更新
 - current-status / active-issues / system-overview / runbook更新
 - log / AI prompt / handoff追加
+- PR #104作成
+- 最終headで全品質ゲート成功確認
 
 ## Key Decisions
 
@@ -47,25 +49,28 @@ submission claimへprocessing leaseとheartbeatを追加し、Workerのheartbeat
 - heartbeat timer停止と非同期heartbeatの競合が無害か。
 - learner-safe DTOへlease・attempt keyが露出しないか。
 
-## Validation Required
+## Validation Results
 
-- docs validation
-- lint
-- typecheck
-- unit test
-- integration test
-- schema validation
-- build
+GitHub Actions:
 
-確認対象:
+- docs validation: Success
+- lint: Success
+- typecheck: Success
+- unit test: Success
+- integration test: Success
+- schema validation: Success
+- build: Success
+
+確認済み:
 - 旧DB migrationの冪等性
 - lease付きclaim
 - heartbeat延長
 - attempt/key不一致のno-op
-- lease期限切れ後のno-op
+- lease期限切れ後のheartbeat no-op
 - retry後の旧attempt terminal拒否
 - terminal保存後のleaseクリア
 - learner-safe境界
+- queued起動時回収・retry flow・completion guardの回帰なし
 
 ## Known Risks
 
@@ -77,12 +82,11 @@ submission claimへprocessing leaseとheartbeatを追加し、Workerのheartbeat
 
 ## Remaining Tasks
 
-1. 最終headのCI結果を確認する。
-2. PR #104をReady for reviewへ変更する。
-3. レビュー後にmergeする。
-4. Issue #102 / Linear MIZ-27を完了へ更新する。
-5. branch cleanupを確認する。
-6. stale候補一覧 / recovery transaction / periodic scannerの後続Issueを作成する。
+1. PR #104をReady for reviewへ変更する。
+2. レビュー後にmergeする。
+3. Issue #102 / Linear MIZ-27を完了へ更新する。
+4. branch cleanupを確認する。
+5. stale候補一覧 / recovery transaction / periodic scannerの後続Issueを作成する。
 
 ## Handoff Notes
 
