@@ -174,6 +174,7 @@ export const updateSubmissionForAttempt = async (
           processing_heartbeat_at = NULL,
           processing_lease_expires_at = NULL
       WHERE id = ?
+        AND status = 'running'
         AND completion_guard_at IS NULL
         AND grading_attempt = ?
         AND (processing_lease_expires_at IS NULL OR processing_lease_expires_at > ?)
