@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-07-22（Issue #102 lease / heartbeat / attempt fencing実装中）
+最終更新: 2026-07-23（Issue #106 retry再投入失敗時のqueued attempt終端化を実装中）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -12,36 +12,69 @@
 
 ## 進行中Issue
 
-### #102 submission claimにlease・heartbeat・attempt fencingを実装する
+### #106 retry再投入失敗時にqueued attemptをfenceしてinfra_failedへ終端化する
 - 優先度: P1
 - 状態: Open / In Progress
-- GitHub: `https://github.com/mizzz-dev/ai-code-dojo/issues/102`
-- PR: `https://github.com/mizzz-dev/ai-code-dojo/pull/104`（Draft）
-- Linear mirror: `MIZ-27`（In Progress）
-- 目的: Workerがclaimしたsubmissionの所有権と生存期限をDBへ記録し、所有権喪失後または旧attemptからの更新をDB条件で拒否する。
+- GitHub: `https://github.com/mizzz-dev/ai-code-dojo/issues/106`
+- PR: `https://github.com/mizzz-dev/ai-code-dojo/pull/107`（Draft）
+- Linear mirror: 新規Issue作成はworkspace無料枠上限のため不可。MIZ-34へblocker情報を記録。
+- 背景: PR #104のマージ後レビューで、retry再投入失敗時に新attemptが `queued` のまま残る不具合を確認した。
+- 目的: 現在のqueued retry attemptだけをattempt/idempotency keyでfenceし、completion guardを維持したまま `infra_failed` へ一意に終端化する。
 - 対象:
-  - processing lease関連nullable列のadditive migration
-  - lease付き `queued -> running` claim
-  - heartbeat lifecycle
-  - expected attempt / attempt idempotency keyによるnon-terminal・terminal fencing
-  - feature flagと設定値検証
-  - migration / unit / integration test
-  - current-status / active-issues / architecture / runbook / logs / ai-prompts / handoff
+  - queued attempt専用のfenced terminal update
+  - Worker retry再投入失敗経路
+  - attempt/key不一致・重複・状態不一致時のno-op
+  - learner-safe `failed` 抽象化の回帰確認
+  - unit / integration test
+  - current-status / active-issues / runbook / logs / ai-prompts / handoff
 - 非対象:
-  - stale候補一覧・periodic scanner・自動recovery
-  - `running -> retry_pending -> queued(new attempt)` の自動回収
+  - stale scanner / 自動回収
+  - DB schema / migration / seed変更
+  - Runner / hidden tests / auth / admin / UI / deployment変更
+  - 外部queue導入
+- 完了条件:
+  - `status = queued` / completion guard未設定 / expected attempt / expected keyを条件に `infra_failed` へ終端化できる。
+  - running、terminal済み、旧attempt、重複更新を拒否できる。
+  - completion guardを設定し、processing lease情報をクリアできる。
+  - retry再投入先が到達不能または非2xxでもqueued状態を残さない。
+  - learner-safeへ内部ログ・attempt key・lease情報を露出しない。
+  - 全CI品質ゲートを通過する。
+
+### #105 lease期限切れrunning submissionのstale scannerと安全な自動回収を実装する
+- 優先度: P1
+- 状態: Open / Blocked
+- GitHub: `https://github.com/mizzz-dev/ai-code-dojo/issues/105`
+- Linear mirror: `MIZ-34`（Todo）
+- Blocker: Issue #106 / PR #107
+- 目的: lease期限切れの `running` submissionをWorker起動時・定期scannerで検出し、新attemptとして安全に回収する。
+- 対象:
+  - stale候補一覧取得
+  - expected attempt / key / lease expiry付きrecovery CAS
+  - new attempt / new idempotency key
+  - attempt上限判定
+  - Worker起動時・periodic scanner
+  - feature flag / interval / batch size / concurrency設定
+- 非対象:
   - 外部queue導入
   - Runner / hidden tests / auth / admin / UI / deployment変更
-- 完了条件:
-  - lease関連列を既存DBへ冪等にmigrationできる。
-  - claim成功時にlease情報を保存できる。
-  - heartbeat成功時にlease期限を延長し、期限切れ・attempt/key不一致時はno-opになる。
-  - Workerの状態更新・terminal保存をattempt/key/lease期限でfenceできる。
-  - completion guardを維持する。
-  - learner-safeレスポンスへlease・heartbeat・attempt keyを露出しない。
-  - lint / typecheck / unit / integration / schema validation / build / docs validationを通過する。
+- 着手条件:
+  - Issue #106 / PR #107がmergeされ、retry再投入失敗時のqueued attempt終端化が保証されること。
 
 ## Recently Completed
+
+### #102 / PR #104 （完了済み）
+- 優先度: P1
+- 状態: Closed / Merged / Completed
+- 完了日: 2026-07-23
+- GitHub Issue: `https://github.com/mizzz-dev/ai-code-dojo/issues/102`
+- GitHub PR: `https://github.com/mizzz-dev/ai-code-dojo/pull/104`
+- Linear mirror: `MIZ-27`（Done）
+- 関連資料:
+  - `docs/logs/2026-07-22-issue-102-processing-lease-heartbeat-fencing.md`
+  - `docs/ai-prompts/2026-07-22-issue-102-processing-lease-heartbeat-fencing-codex.md`
+  - `docs/handoff/2026-07-22-issue-102-processing-lease-heartbeat-fencing-handoff.md`
+- 反映内容: processing lease関連列、lease付きclaim、heartbeat、expected attempt/key/lease期限によるnon-terminal・terminal fencing、feature flag、migration・unit・integration testを実装。
+- follow-up: PR #104のマージ後レビューで確認したretry再投入失敗時のqueued残留をIssue #106へ分離。
 
 ### #101 / PR #103 （完了済み）
 - 優先度: P1
@@ -123,7 +156,7 @@
 - 反映内容: SQLite既存DBのattempt列追加前にindex作成が走るmigration順序不整合を解消。
 
 ### #87 （完了済み）
-- 優度: P1
+- 優先度: P1
 - 状態: Closed / Completed
 - 完了日: 2026-05-21
 - 関連資料:
@@ -155,8 +188,9 @@
 
 ## Next Issue Candidates
 
-1. stale scanner / recovery transaction実装Issue（P1）
-   - 優先理由: Issue #102でattempt fencingを完成させた後、lease期限切れrunningを新attemptとして安全に回収するため。
+1. Issue #105 stale scanner / recovery transaction実装（P1）
+   - 着手条件: Issue #106 / PR #107の完了。
+   - 優先理由: lease期限切れrunningを新attemptとして安全に回収するため。
 2. queue運用改善Issue（P1）
    - 優先理由: visibility timeout / DLQ / backoffを運用要件に合わせて強化するため。
 3. 監査ログ整備Issue（P2）
@@ -164,6 +198,6 @@
 
 ## Branch Cleanup
 
-- PR #103のhead branch削除状態はGitHub UIで確認する。
-- Issue #102のhead branchは `feat/submission-processing-lease-heartbeat`。
-- PR #104 merge後にIssue #102のhead branchを削除する。
+- PR #104のhead branch `feat/submission-processing-lease-heartbeat` の削除状態はGitHub UIで確認する。
+- Issue #106のhead branchは `fix/finalize-queued-retry-enqueue-failure`。
+- PR #107 merge後にIssue #106のhead branchを削除する。
