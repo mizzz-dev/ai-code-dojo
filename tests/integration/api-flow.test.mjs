@@ -33,6 +33,10 @@ const fetchSubmissionResultUntilCompleted = async (submissionId, headers = {}, r
 const assertLearnerSafeBoundary = (resultData) => {
   assert.equal(resultData.result.internal, undefined);
   assert.equal(resultData.result.logs, undefined);
+  assert.equal(resultData.attemptIdempotencyKey, undefined);
+  assert.equal(resultData.processingClaimedAt, undefined);
+  assert.equal(resultData.processingHeartbeatAt, undefined);
+  assert.equal(resultData.processingLeaseExpiresAt, undefined);
   const serialized = JSON.stringify(resultData);
   assert.equal(serialized.includes('[hidden] hidden tests log is not exposed in MVP.'), false);
 };
@@ -96,6 +100,8 @@ test('challenge 一覧/詳細, submission 作成/結果取得', async (t) => {
   assert.ok(adminResultData.result.internal);
   assert.ok(Array.isArray(adminResultData.result.internal.hiddenTestResults));
   assert.ok(Array.isArray(adminResultData.result.internal.fullTestResults));
+  assert.equal(adminResultData.attemptIdempotencyKey, undefined);
+  assert.equal(adminResultData.processingLeaseExpiresAt, undefined);
 });
 
 test('timeout/runtime failure 経路でも learner-safe 境界を維持する', async (t) => {
@@ -196,7 +202,7 @@ test('infrastructure failure は retry_pending -> queued 再投入後に infra_f
   assert.ok(Array.isArray(adminResultData.result.logs));
 });
 
-test('Worker起動時にqueued submissionを回収して採点を再開する', async (t) => {
+test('Worker起動時にlease付きでqueued submissionを回収して採点を再開する', async (t) => {
   const repo = await import('../../apps/api/src/repositories/submission-repository.mjs');
   const submission = await repo.createSubmission({
     challengeSlug: 'js-bugfix-add',
@@ -204,7 +210,12 @@ test('Worker起動時にqueued submissionを回収して採点を再開する', 
     code: 'export function sum(nums){ return nums.reduce((acc, n) => acc + n, 0); }'
   });
 
-  const worker = startServer('node', ['apps/worker/src/server.mjs'], { WORKER_PORT: '18083' });
+  const worker = startServer('node', ['apps/worker/src/server.mjs'], {
+    WORKER_PORT: '18083',
+    WORKER_HEARTBEAT_ENABLED: '1',
+    WORKER_LEASE_DURATION_MS: '3000',
+    WORKER_HEARTBEAT_INTERVAL_MS: '500'
+  });
   t.after(() => worker.kill('SIGKILL'));
 
   await waitForHealth('http://localhost:18083/health');
@@ -219,4 +230,7 @@ test('Worker起動時にqueued submissionを回収して採点を再開する', 
   assert.equal(recovered.status, 'completed');
   assert.ok(recovered.completionGuardAt);
   assert.ok(recovered.result);
+  assert.equal(recovered.processingClaimedAt, null);
+  assert.equal(recovered.processingHeartbeatAt, null);
+  assert.equal(recovered.processingLeaseExpiresAt, null);
 });

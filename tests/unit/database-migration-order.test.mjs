@@ -10,7 +10,7 @@ const resetDbModule = async () => {
   return import(`${moduleUrl.href}?t=${Date.now()}`);
 };
 
-test('runMigrations adds attempt columns before attempt indexes on legacy submissions table', async () => {
+test('runMigrations adds attempt and processing lease columns before indexes on legacy submissions table', async () => {
   const dir = await mkdtemp(path.join(tmpdir(), 'dojo-db-migrate-'));
   const prev = process.cwd();
   process.chdir(dir);
@@ -36,13 +36,19 @@ test('runMigrations adds attempt columns before attempt indexes on legacy submis
 
   const { runMigrations } = await resetDbModule();
   runMigrations();
+  runMigrations();
 
   const migratedDb = new DatabaseSync(dbPath);
   const columns = migratedDb.prepare('PRAGMA table_info(submissions)').all();
   const indexes = migratedDb.prepare('PRAGMA index_list(submissions)').all();
+  const columnNames = new Set(columns.map((column) => column.name));
 
-  assert.ok(columns.some((column) => column.name === 'grading_attempt'));
-  assert.ok(columns.some((column) => column.name === 'attempt_idempotency_key'));
+  assert.ok(columnNames.has('grading_attempt'));
+  assert.ok(columnNames.has('attempt_idempotency_key'));
+  assert.ok(columnNames.has('completion_guard_at'));
+  assert.ok(columnNames.has('processing_claimed_at'));
+  assert.ok(columnNames.has('processing_heartbeat_at'));
+  assert.ok(columnNames.has('processing_lease_expires_at'));
   assert.ok(indexes.some((index) => index.name === 'idx_submissions_attempt_unique'));
   assert.ok(indexes.some((index) => index.name === 'idx_submissions_attempt_key_unique'));
 
