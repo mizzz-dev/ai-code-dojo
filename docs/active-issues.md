@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-07-22（Issue #101 stale running recovery設計に着手）
+最終更新: 2026-07-22（Issue #102 lease / heartbeat / attempt fencing実装中）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -12,37 +12,51 @@
 
 ## 進行中Issue
 
-### #101 stale running submissionのlease・heartbeat・安全な回収方針を確定する
+### #102 submission claimにlease・heartbeat・attempt fencingを実装する
 - 優先度: P1
-- 状態: Open / In Progress（docs-only）
-- GitHub: `https://github.com/mizzz-dev/ai-code-dojo/issues/101`
-- Linear mirror: `MIZ-25`
-- 目的: Worker停止後に `running` のまま残るsubmissionを安全に回収するため、lease / heartbeat / attempt fencing / recovery方針を実装前に確定する。
+- 状態: Open / In Progress
+- GitHub: `https://github.com/mizzz-dev/ai-code-dojo/issues/102`
+- PR: `https://github.com/mizzz-dev/ai-code-dojo/pull/104`（Draft）
+- Linear mirror: `MIZ-27`（In Progress）
+- 目的: Workerがclaimしたsubmissionの所有権と生存期限をDBへ記録し、所有権喪失後または旧attemptからの更新をDB条件で拒否する。
 - 対象:
-  - stale `running` の定義
-  - lease / heartbeat / timeout
-  - attempt idempotency keyを用いたfencing
-  - completion guardとの整合
-  - SQLite MVPと将来queue基盤の責務境界
-  - migration / backfill / rollout / rollback
-  - ADR / reports / runbook / logs / ai-prompts / handoff
+  - processing lease関連nullable列のadditive migration
+  - lease付き `queued -> running` claim
+  - heartbeat lifecycle
+  - expected attempt / attempt idempotency keyによるnon-terminal・terminal fencing
+  - feature flagと設定値検証
+  - migration / unit / integration test
+  - current-status / active-issues / architecture / runbook / logs / ai-prompts / handoff
 - 非対象:
-  - DB schema / migration / seedの実変更
-  - Worker / API / Runner /採点ロジックの実変更
+  - stale候補一覧・periodic scanner・自動recovery
+  - `running -> retry_pending -> queued(new attempt)` の自動回収
   - 外部queue導入
-  - auth / admin / UI / deployment変更
+  - Runner / hidden tests / auth / admin / UI / deployment変更
 - 完了条件:
-  - stale判定とlease所有権を明文化する。
-  - stale回収時に新attemptを開始する方針を確定する。
-  - 旧Workerの遅延heartbeat・完了保存をfencingで無害化する。
-  - legacy runningを自動回収しない方針を明記する。
-  - ADR・設計レポート・runbook・正本docs・ログ・handoffを更新する。
-  - 後続実装Issueを具体化する。
+  - lease関連列を既存DBへ冪等にmigrationできる。
+  - claim成功時にlease情報を保存できる。
+  - heartbeat成功時にlease期限を延長し、期限切れ・attempt/key不一致時はno-opになる。
+  - Workerの状態更新・terminal保存をattempt/key/lease期限でfenceできる。
+  - completion guardを維持する。
+  - learner-safeレスポンスへlease・heartbeat・attempt keyを露出しない。
+  - lint / typecheck / unit / integration / schema validation / build / docs validationを通過する。
+
+## Recently Completed
+
+### #101 / PR #103 （完了済み）
+- 優先度: P1
+- 状態: Closed / Merged / Completed（docs-only）
+- 完了日: 2026-07-22
+- GitHub Issue: `https://github.com/mizzz-dev/ai-code-dojo/issues/101`
+- GitHub PR: `https://github.com/mizzz-dev/ai-code-dojo/pull/103`
+- Linear mirror: `MIZ-25`（Done）
 - 成果物:
   - `docs/reports/2026-07-22-stale-running-lease-recovery-design.md`
   - `docs/adr/2026-07-22-stale-running-lease-recovery.md`
-
-## Recently Completed
+  - `docs/logs/2026-07-22-issue-101-stale-running-recovery-design.md`
+  - `docs/ai-prompts/2026-07-22-issue-101-stale-running-recovery-design-codex.md`
+  - `docs/handoff/2026-07-22-issue-101-stale-running-recovery-design-handoff.md`
+- 反映内容: stale `running` / `legacy_running` の定義、lease / heartbeat / attempt fencing、stale回収時の新attempt開始、migration / rollout / rollback、SQLite MVPと将来queue基盤の境界を確定。
 
 ### #99 / PR #100 （完了済み）
 - 優先度: P1
@@ -60,13 +74,13 @@
 ### #96 （完了済み）
 - 優先度: P1
 - 状態: Closed / Completed
-- 完了日: 2026-07-22（GitHub状態を正本docsへ同期）
+- 完了日: 2026-07-22
 - 関連資料:
   - `docs/logs/2026-05-22-issue-96-retry-requeue-follow-up.md`
   - `docs/ai-prompts/2026-05-22-issue-96-retry-requeue-follow-up-codex.md`
   - `docs/handoff/2026-05-22-issue-96-retry-requeue-follow-up-handoff.md`
 - 関連PR: PR #97 / PR #98
-- 反映内容: PR #95 merge後のP1 follow-upとして、Workerのretry再投入先を実待受 `WORKER_PORT` または明示 `WORKER_RETRY_ENQUEUE_BASE_URL` と整合させ、終端済みsubmissionを非終端状態で上書きしないようcompletion guardを補強。
+- 反映内容: Workerのretry再投入先を実待受設定と整合させ、終端済みsubmissionを非終端状態で上書きしないようcompletion guardを補強。
 
 ### PR #95 （完了済み）
 - 優先度: P1
@@ -109,7 +123,7 @@
 - 反映内容: SQLite既存DBのattempt列追加前にindex作成が走るmigration順序不整合を解消。
 
 ### #87 （完了済み）
-- 優先度: P1
+- 優度: P1
 - 状態: Closed / Completed
 - 完了日: 2026-05-21
 - 関連資料:
@@ -139,29 +153,17 @@
   - `docs/handoff/2026-05-20-issue-83-retry-state-machine-state-vocabulary-handoff.md`
 - 反映内容: Retry state machineの状態語彙・状態遷移・learner-safe境界を確定。
 
-### #77 （完了済み）
-- 優先度: P1
-- 状態: Closed / Completed
-- 完了日: 2026-05-20
-- 関連資料:
-  - `docs/reports/2026-05-19-retry-state-machine-idempotency-adr-candidate.md`
-  - `docs/logs/2026-05-19-issue-77-source-of-truth-recovery-and-idempotency-adr.md`
-  - `docs/handoff/2026-05-19-issue-77-source-of-truth-recovery-and-idempotency-adr-handoff.md`
-- 反映内容: Source of Truth復旧、欠落ログ補完、Retry state machine / idempotency / completion guardのADR候補整理を完了。
-
 ## Next Issue Candidates
 
-1. lease / heartbeat / fenced completion実装Issue（P1）
-   - 優先理由: stale scannerを有効化する前に、旧attemptの更新をDBで拒否するfencingを実装する必要がある。
-2. stale scanner / recovery transaction実装Issue（P1）
-   - 優先理由: lease期限切れrunningを新attemptとして安全に回収するため。
-3. queue運用改善Issue（P1）
+1. stale scanner / recovery transaction実装Issue（P1）
+   - 優先理由: Issue #102でattempt fencingを完成させた後、lease期限切れrunningを新attemptとして安全に回収するため。
+2. queue運用改善Issue（P1）
    - 優先理由: visibility timeout / DLQ / backoffを運用要件に合わせて強化するため。
-4. 監査ログ整備Issue（P2）
+3. 監査ログ整備Issue（P2）
    - 優先理由: completion guard、heartbeat、recovery判定を必要最小限の監査情報として可視化するため。
 
 ## Branch Cleanup
 
-- PR #100のhead branch削除状態はGitHub UIで最終確認する。
-- Issue #101のhead branchは `docs/stale-running-recovery-design`。
-- merge後にIssue #101のhead branchを削除する。
+- PR #103のhead branch削除状態はGitHub UIで確認する。
+- Issue #102のhead branchは `feat/submission-processing-lease-heartbeat`。
+- PR #104 merge後にIssue #102のhead branchを削除する。
