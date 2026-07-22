@@ -15,20 +15,30 @@ const ensureDataDir = () => {
 
 const ensureSubmissionColumns = (database) => {
   const columns = database.prepare('PRAGMA table_info(submissions)').all();
-  const hasAttempt = columns.some((column) => column.name === 'grading_attempt');
-  const hasKey = columns.some((column) => column.name === 'attempt_idempotency_key');
-  const hasCompletionGuardAt = columns.some((column) => column.name === 'completion_guard_at');
+  const columnNames = new Set(columns.map((column) => column.name));
 
-  if (!hasAttempt) {
+  if (!columnNames.has('grading_attempt')) {
     database.exec('ALTER TABLE submissions ADD COLUMN grading_attempt INTEGER NOT NULL DEFAULT 1');
   }
 
-  if (!hasKey) {
+  if (!columnNames.has('attempt_idempotency_key')) {
     database.exec('ALTER TABLE submissions ADD COLUMN attempt_idempotency_key TEXT');
   }
 
-  if (!hasCompletionGuardAt) {
+  if (!columnNames.has('completion_guard_at')) {
     database.exec('ALTER TABLE submissions ADD COLUMN completion_guard_at TEXT');
+  }
+
+  if (!columnNames.has('processing_claimed_at')) {
+    database.exec('ALTER TABLE submissions ADD COLUMN processing_claimed_at TEXT');
+  }
+
+  if (!columnNames.has('processing_heartbeat_at')) {
+    database.exec('ALTER TABLE submissions ADD COLUMN processing_heartbeat_at TEXT');
+  }
+
+  if (!columnNames.has('processing_lease_expires_at')) {
+    database.exec('ALTER TABLE submissions ADD COLUMN processing_lease_expires_at TEXT');
   }
 };
 
@@ -71,7 +81,10 @@ const migrateSchema = (database) => {
       result_json TEXT,
       grading_attempt INTEGER NOT NULL DEFAULT 1,
       attempt_idempotency_key TEXT,
-      completion_guard_at TEXT
+      completion_guard_at TEXT,
+      processing_claimed_at TEXT,
+      processing_heartbeat_at TEXT,
+      processing_lease_expires_at TEXT
     );
 
     CREATE INDEX IF NOT EXISTS idx_challenges_slug_status ON challenges(slug, status);
