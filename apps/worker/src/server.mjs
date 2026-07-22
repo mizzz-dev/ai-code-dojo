@@ -5,11 +5,13 @@ import { getChallengeBasePath } from '../../api/src/repositories/challenge-repos
 import {
   claimSubmissionForProcessing,
   getSubmission,
+  heartbeatSubmissionProcessing,
   listQueuedSubmissions,
   startRetryAttempt,
-  updateSubmission
+  updateSubmissionForAttempt
 } from '../../api/src/repositories/submission-repository.mjs';
 import { enqueueSubmissionAttempt } from '../../api/src/services/submission-service.mjs';
+import { getProcessingLeaseConfig } from './config/processing-lease-config.mjs';
 import { runJavaScriptChallenge, runJavaScriptChallengeViaIsolatedJob } from './services/js-runner.mjs';
 
 const port = Number(process.env.WORKER_PORT ?? 8081);
@@ -17,6 +19,7 @@ const useIsolationPoc = process.env.RUNNER_ISOLATION_POC === '1';
 const isProduction = process.env.NODE_ENV === 'production';
 const maxInfraRetryAttempts = Number(process.env.WORKER_MAX_INFRA_RETRY_ATTEMPTS ?? 2);
 const retryEnqueueBaseUrl = process.env.WORKER_RETRY_ENQUEUE_BASE_URL ?? `http://localhost:${port}`;
+const processingLeaseConfig = getProcessingLeaseConfig(process.env);
 
 if (useIsolationPoc && isProduction) {
   throw new Error('RUNNER_ISOLATION_POC must not be enabled in production.');
@@ -38,11 +41,61 @@ const parseBody = async (req) => {
 
 const shouldRetryInfraFailure = (attempt) => attempt < maxInfraRetryAttempts;
 
+const getExpectedAttempt = (submission) => ({
+  gradingAttempt: submission.gradingAttempt,
+  attemptIdempotencyKey: submission.attemptIdempotencyKey
+});
+
+const createHeartbeatController = (submission) => {
+  if (!processingLeaseConfig.enabled) {
+    return {
+      hasOwnership: () => true,
+      stop: () => {}
+    };
+  }
+
+  let ownsLease = true;
+  let heartbeatRunning = false;
+  const expectedAttempt = getExpectedAttempt(submission);
+
+  const heartbeat = async () => {
+    if (!ownsLease || heartbeatRunning) return;
+    heartbeatRunning = true;
+
+    try {
+      const updated = await heartbeatSubmissionProcessing({
+        id: submission.id,
+        ...expectedAttempt,
+        leaseDurationMs: processingLeaseConfig.leaseDurationMs
+      });
+      if (!updated) ownsLease = false;
+    } catch {
+      ownsLease = false;
+      console.error('submission heartbeat failed', {
+        submissionId: submission.id,
+        gradingAttempt: submission.gradingAttempt
+      });
+    } finally {
+      heartbeatRunning = false;
+    }
+  };
+
+  const timer = setInterval(() => {
+    void heartbeat();
+  }, processingLeaseConfig.heartbeatIntervalMs);
+  timer.unref?.();
+
+  return {
+    hasOwnership: () => ownsLease,
+    stop: () => clearInterval(timer)
+  };
+};
+
 const handleInfrastructureFailure = async ({ submissionId, submission, error }) => {
-  await updateSubmission(submissionId, { status: 'retry_pending' });
+  const expectedAttempt = getExpectedAttempt(submission);
 
   if (!shouldRetryInfraFailure(submission.gradingAttempt ?? 1)) {
-    await updateSubmission(submissionId, {
+    await updateSubmissionForAttempt(submissionId, {
       status: 'infra_failed',
       result: {
         status: 'infra_failed',
@@ -52,11 +105,18 @@ const handleInfrastructureFailure = async ({ submissionId, submission, error }) 
         testResults: [],
         artifacts: []
       }
-    });
+    }, expectedAttempt);
     return;
   }
 
-  const retriedSubmission = await startRetryAttempt(submissionId);
+  const retryPending = await updateSubmissionForAttempt(
+    submissionId,
+    { status: 'retry_pending' },
+    expectedAttempt
+  );
+  if (!retryPending) return;
+
+  const retriedSubmission = await startRetryAttempt(submissionId, expectedAttempt);
   if (!retriedSubmission) return;
 
   const enqueued = await enqueueSubmissionAttempt({
@@ -67,7 +127,7 @@ const handleInfrastructureFailure = async ({ submissionId, submission, error }) 
   });
 
   if (!enqueued) {
-    await updateSubmission(submissionId, {
+    await updateSubmissionForAttempt(submissionId, {
       status: 'infra_failed',
       result: {
         status: 'infra_failed',
@@ -77,7 +137,7 @@ const handleInfrastructureFailure = async ({ submissionId, submission, error }) 
         testResults: [],
         artifacts: []
       }
-    });
+    }, getExpectedAttempt(retriedSubmission));
   }
 };
 
@@ -94,16 +154,21 @@ const processSubmission = async ({ submissionId, gradingAttempt, attemptIdempote
   const submission = await claimSubmissionForProcessing({
     id: submissionId,
     gradingAttempt: current.gradingAttempt,
-    attemptIdempotencyKey: current.attemptIdempotencyKey
+    attemptIdempotencyKey: current.attemptIdempotencyKey,
+    leaseDurationMs: processingLeaseConfig.enabled ? processingLeaseConfig.leaseDurationMs : null
   });
   if (!submission) return;
+
+  const heartbeatController = createHeartbeatController(submission);
+  const expectedAttempt = getExpectedAttempt(submission);
 
   try {
     const challengeBasePath = getChallengeBasePath(submission.challengeSlug);
     const challenge = await readJson(path.join(challengeBasePath, 'problem.json'));
 
     if (submission.language !== 'javascript') {
-      await updateSubmission(submissionId, {
+      if (!heartbeatController.hasOwnership()) return;
+      await updateSubmissionForAttempt(submissionId, {
         status: 'failed',
         result: {
           status: 'failed',
@@ -113,7 +178,7 @@ const processSubmission = async ({ submissionId, gradingAttempt, attemptIdempote
           testResults: [],
           artifacts: []
         }
-      });
+      }, expectedAttempt);
       return;
     }
 
@@ -129,9 +194,17 @@ const processSubmission = async ({ submissionId, gradingAttempt, attemptIdempote
           code: submission.code
         });
 
-    await updateSubmission(submissionId, { status: 'completed', result: normalizedResult });
+    if (!heartbeatController.hasOwnership()) return;
+    await updateSubmissionForAttempt(
+      submissionId,
+      { status: 'completed', result: normalizedResult },
+      expectedAttempt
+    );
   } catch (error) {
+    if (!heartbeatController.hasOwnership()) return;
     await handleInfrastructureFailure({ submissionId, submission, error });
+  } finally {
+    heartbeatController.stop();
   }
 };
 
