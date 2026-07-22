@@ -47,6 +47,33 @@ export const getSubmission = async (id) => {
   return row ? mapRow(row) : null;
 };
 
+export const listQueuedSubmissions = async () => {
+  const rows = getDb().prepare(
+    "SELECT * FROM submissions WHERE status = 'queued' AND completion_guard_at IS NULL ORDER BY created_at ASC"
+  ).all();
+
+  return rows.map(mapRow);
+};
+
+export const claimSubmissionForProcessing = async ({ id, gradingAttempt, attemptIdempotencyKey }) => {
+  const timestamp = now();
+  const write = getDb().prepare(`
+    UPDATE submissions
+    SET status = 'running', updated_at = ?
+    WHERE id = ?
+      AND status = 'queued'
+      AND completion_guard_at IS NULL
+      AND grading_attempt = ?
+      AND (
+        attempt_idempotency_key = ?
+        OR (attempt_idempotency_key IS NULL AND ? IS NULL)
+      )
+  `).run(timestamp, id, gradingAttempt, attemptIdempotencyKey, attemptIdempotencyKey);
+
+  if (write.changes === 0) return null;
+  return getSubmission(id);
+};
+
 export const updateSubmission = async (id, patch) => {
   const current = await getSubmission(id);
   if (!current) return null;
@@ -90,7 +117,6 @@ export const updateSubmission = async (id, patch) => {
 
   return updated;
 };
-
 
 export const startRetryAttempt = async (id) => {
   const current = await getSubmission(id);
