@@ -12,6 +12,7 @@
 - Issue #96 / PR #97 / PR #98 で、retry再投入先と終端済みsubmission保護を補強した。
 - Issue #99 / PR #100 で、Worker起動時の `queued` submission回収と `queued -> running` 条件付きclaimを実装し、integration testをCI品質ゲートへ追加した。
 - Issue #101 では、Worker停止後に残る stale `running` を安全に回収するlease / heartbeat / attempt fencing方針をdocs-onlyで確定する。
+- 後続実装Issue #102を作成し、stale scannerより先にlease / heartbeat / fenced completionを実装する順序を固定した。
 - 不変条件（API本体で提出コードを直接実行しない、hidden testsは内部専用、challengeはversion追加方式）を維持する。
 
 ## 稼働中の運用基盤
@@ -27,7 +28,7 @@
 - Issue #101: stale `running` の定義、lease期限、heartbeat、recovery責務を確定する。
 - Issue #101: 既存のattempt idempotency keyをfencing tokenとして利用し、旧Workerの遅延heartbeat・完了保存を拒否する方針を確定する。
 - Issue #101: stale回収時は新attemptを開始し、completion guardとattempt fencingを併用する。
-- Issue #101はdocs-onlyとし、DB schema / migration / Worker / APIの実変更は後続Issueへ分離する。
+- Issue #101はdocs-onlyとし、DB schema / migration / Worker / APIの実変更はIssue #102以降へ分離する。
 
 ## 直近完了事項
 - Issue #99 / PR #100 を完了し、Worker起動時に `queued` submissionを回収して既存採点経路へ戻す導線を実装した。
@@ -43,7 +44,7 @@
 
 ## 優先順位（直近）
 1. Issue #101: stale `running` のlease / heartbeat / recovery設計をdocs-onlyで確定する。
-2. 後続P1: lease付きclaim / heartbeat / fenced terminal updateを実装する。
+2. Issue #102: lease付きclaim / heartbeat / fenced non-terminal・terminal updateを実装する。
 3. 後続P1: stale scanner / recovery transaction / attempt上限判定を実装する。
 4. 後続候補: queue運用改善（visibility timeout / DLQ / backoff）を現行構成と将来queue基盤に分けて設計する。
 5. 後続候補: completion guard / retry判断理由の監査ログ粒度を拡張する。
@@ -57,6 +58,7 @@
 ## 参照先
 - 進行中Issue: `docs/active-issues.md`
 - Issue #101: `https://github.com/mizzz-dev/ai-code-dojo/issues/101`
+- 後続Issue #102: `https://github.com/mizzz-dev/ai-code-dojo/issues/102`
 - Issue #101設計レポート: `docs/reports/2026-07-22-stale-running-lease-recovery-design.md`
 - Issue #101 ADR: `docs/adr/2026-07-22-stale-running-lease-recovery.md`
 - Issue #99 / PR #100 作業ログ: `docs/logs/2026-07-22-issue-99-worker-startup-queued-recovery.md`
