@@ -10,8 +10,12 @@ Issue #99 / PR #100完了後の次P1として、Worker停止後に残る stale `
 - 完了Issue: #99
 - Current Issue: #101
 - URL: `https://github.com/mizzz-dev/ai-code-dojo/issues/101`
+- Current PR: #103
+- PR URL: `https://github.com/mizzz-dev/ai-code-dojo/pull/103`
 - Linear mirror: `MIZ-25`
 - Branch: `docs/stale-running-recovery-design`
+- 後続実装Issue: #102
+- 後続Linear mirror: `MIZ-27`
 
 ## Completed Tasks
 
@@ -27,6 +31,9 @@ Issue #99 / PR #100完了後の次P1として、Worker停止後に残る stale `
 - `docs/architecture/system-overview.md`へlease / heartbeat / recovery責務を反映した。
 - Worker failure recovery runbookを更新した。
 - 後続実装Issue #102を作成した。
+- Linear MIZ-27をTodoで作成し、MIZ-25をblockerとして設定した。
+- docs-only PR #103を作成した。
+- GitHub Actionsで全品質ゲートの成功を確認した。
 
 ## Repository Findings
 
@@ -66,20 +73,33 @@ Issue #99 / PR #100完了後の次P1として、Worker停止後に残る stale `
 - 大量staleの一斉再投入
 - feature flag有効化順序の誤り
 
+## Validation Results
+
+GitHub Actions run #51:
+
+- docs validation: Success
+- lint: Success
+- typecheck: Success
+- unit test: Success
+- integration test: Success
+- schema validation: Success
+- build: Success
+
+本変更はdocs-onlyであり、API / Worker / Runner / DB schema / migration / seedの実変更は含まない。
+
 ## Remaining Tasks
 
-- docs validationを含むCIを確認する。
-- PRを作成してレビュー可能状態へする。
+- PR #103をReady for reviewへ変更する。
 - PR merge後にIssue #101とLinear MIZ-25を完了へ更新する。
 - merge後にbranch cleanupを確認する。
-- 後続Issue #102でlease / heartbeat / fenced completionを実装する。
+- 後続Issue #102 / Linear MIZ-27でlease / heartbeat / fenced completionを実装する。
 - stale scanner / recovery transactionはIssue #102完了後に別Issueへ分離する。
 
 ## Suggested Next Actions
 
-1. Issue #101のdocs-only PRを作成する。
-2. CIでdocs validation・既存品質ゲートの回帰がないことを確認する。
-3. merge後、Issue #102へ着手する。
+1. PR #103をレビュー・mergeする。
+2. merge後、Issue #102へ着手する。
+3. Issue #102完了後にstale scanner / recovery transaction実装Issueを作成する。
 
 ## AI Prompts Used
 
