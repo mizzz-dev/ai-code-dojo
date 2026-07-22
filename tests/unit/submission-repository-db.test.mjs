@@ -78,6 +78,39 @@ test('submission repository persists create/update/get in db', async () => {
   assert.equal(terminalOverwrite.result.status, 'failed');
   assert.equal(terminalOverwrite.completionGuardAt, retryTerminal.completionGuardAt);
 
+  const recoverableFirst = await repo.createSubmission({ challengeSlug: 'js-bugfix-add', language: 'javascript', code: 'module.exports=4;' });
+  const recoverableSecond = await repo.createSubmission({ challengeSlug: 'js-bugfix-add', language: 'javascript', code: 'module.exports=5;' });
+
+  const queued = await repo.listQueuedSubmissions();
+  assert.deepEqual(
+    new Set(queued.map((submission) => submission.id)),
+    new Set([recoverableFirst.id, recoverableSecond.id])
+  );
+
+  const wrongAttemptClaim = await repo.claimSubmissionForProcessing({
+    id: recoverableFirst.id,
+    gradingAttempt: 99,
+    attemptIdempotencyKey: recoverableFirst.attemptIdempotencyKey
+  });
+  assert.equal(wrongAttemptClaim, null);
+
+  const claimed = await repo.claimSubmissionForProcessing({
+    id: recoverableFirst.id,
+    gradingAttempt: recoverableFirst.gradingAttempt,
+    attemptIdempotencyKey: recoverableFirst.attemptIdempotencyKey
+  });
+  assert.equal(claimed.status, 'running');
+
+  const duplicateClaim = await repo.claimSubmissionForProcessing({
+    id: recoverableFirst.id,
+    gradingAttempt: recoverableFirst.gradingAttempt,
+    attemptIdempotencyKey: recoverableFirst.attemptIdempotencyKey
+  });
+  assert.equal(duplicateClaim, null);
+
+  const remainingQueued = await repo.listQueuedSubmissions();
+  assert.deepEqual(remainingQueued.map((submission) => submission.id), [recoverableSecond.id]);
+
   process.chdir(prev);
   await rm(dir, { recursive: true, force: true });
 });

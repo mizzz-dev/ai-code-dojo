@@ -2,7 +2,13 @@ import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { getChallengeBasePath } from '../../api/src/repositories/challenge-repository.mjs';
-import { getSubmission, startRetryAttempt, updateSubmission } from '../../api/src/repositories/submission-repository.mjs';
+import {
+  claimSubmissionForProcessing,
+  getSubmission,
+  listQueuedSubmissions,
+  startRetryAttempt,
+  updateSubmission
+} from '../../api/src/repositories/submission-repository.mjs';
 import { enqueueSubmissionAttempt } from '../../api/src/services/submission-service.mjs';
 import { runJavaScriptChallenge, runJavaScriptChallengeViaIsolatedJob } from './services/js-runner.mjs';
 
@@ -76,20 +82,21 @@ const handleInfrastructureFailure = async ({ submissionId, submission, error }) 
 };
 
 const processSubmission = async ({ submissionId, gradingAttempt, attemptIdempotencyKey }) => {
-  const submission = await getSubmission(submissionId);
-  if (!submission) return;
+  const current = await getSubmission(submissionId);
+  if (!current) return;
 
   if (typeof gradingAttempt === 'number' && attemptIdempotencyKey) {
-    if (submission.gradingAttempt !== gradingAttempt || submission.attemptIdempotencyKey !== attemptIdempotencyKey) {
+    if (current.gradingAttempt !== gradingAttempt || current.attemptIdempotencyKey !== attemptIdempotencyKey) {
       return;
     }
   }
 
-  if (submission.completionGuardAt) {
-    return;
-  }
-
-  await updateSubmission(submissionId, { status: 'running' });
+  const submission = await claimSubmissionForProcessing({
+    id: submissionId,
+    gradingAttempt: current.gradingAttempt,
+    attemptIdempotencyKey: current.attemptIdempotencyKey
+  });
+  if (!submission) return;
 
   try {
     const challengeBasePath = getChallengeBasePath(submission.challengeSlug);
@@ -128,6 +135,22 @@ const processSubmission = async ({ submissionId, gradingAttempt, attemptIdempote
   }
 };
 
+const recoverQueuedSubmissions = async () => {
+  const queuedSubmissions = await listQueuedSubmissions();
+
+  for (const submission of queuedSubmissions) {
+    setImmediate(() => {
+      processSubmission({
+        submissionId: submission.id,
+        gradingAttempt: submission.gradingAttempt,
+        attemptIdempotencyKey: submission.attemptIdempotencyKey
+      });
+    });
+  }
+
+  return queuedSubmissions.length;
+};
+
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host}`);
 
@@ -157,4 +180,11 @@ const server = http.createServer(async (req, res) => {
 
 server.listen(port, () => {
   console.log(`worker listening on http://localhost:${port}`);
+  void recoverQueuedSubmissions()
+    .then((count) => {
+      if (count > 0) console.log(`queued submissions recovered: ${count}`);
+    })
+    .catch((error) => {
+      console.error('queued submission recovery failed', error);
+    });
 });
