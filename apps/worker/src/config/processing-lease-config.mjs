@@ -14,6 +14,14 @@ const parsePositiveNumber = (rawValue, fallback, name) => {
 
 export const getProcessingLeaseConfig = (env = process.env) => {
   const enabled = env.WORKER_HEARTBEAT_ENABLED === '1';
+  if (!enabled) {
+    return {
+      enabled: false,
+      leaseDurationMs: DEFAULT_LEASE_DURATION_MS,
+      heartbeatIntervalMs: DEFAULT_HEARTBEAT_INTERVAL_MS
+    };
+  }
+
   const leaseDurationMs = parsePositiveNumber(
     env.WORKER_LEASE_DURATION_MS,
     DEFAULT_LEASE_DURATION_MS,
@@ -25,12 +33,12 @@ export const getProcessingLeaseConfig = (env = process.env) => {
     'WORKER_HEARTBEAT_INTERVAL_MS'
   );
 
-  if (enabled && heartbeatIntervalMs * 3 > leaseDurationMs) {
+  if (heartbeatIntervalMs * 3 > leaseDurationMs) {
     throw new Error('WORKER_HEARTBEAT_INTERVAL_MS must be at most one third of WORKER_LEASE_DURATION_MS.');
   }
 
   return {
-    enabled,
+    enabled: true,
     leaseDurationMs,
     heartbeatIntervalMs
   };
