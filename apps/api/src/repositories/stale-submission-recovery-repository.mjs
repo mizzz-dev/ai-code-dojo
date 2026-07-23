@@ -65,7 +65,7 @@ export const recoverStaleRunningSubmission = async ({
   }
 
   const database = getDb();
-  const executeRecovery = database.transaction(() => {
+  const performRecovery = () => {
     const current = database.prepare(`
       SELECT id,
              status,
@@ -207,7 +207,15 @@ export const recoverStaleRunningSubmission = async ({
       previousAttempt: gradingAttempt,
       submission: mapRecoveryState(queued)
     };
-  });
+  };
 
-  return executeRecovery();
+  database.exec('BEGIN IMMEDIATE');
+  try {
+    const recovered = performRecovery();
+    database.exec('COMMIT');
+    return recovered;
+  } catch (error) {
+    database.exec('ROLLBACK');
+    throw error;
+  }
 };
