@@ -1,6 +1,6 @@
 # adr
 
-最終更新: 2026-07-22
+最終更新: 2026-07-23
 
 ## 目的
 このディレクトリの保管対象を定義し、情報の散逸を防ぐ。
@@ -12,6 +12,10 @@
 
 ## ADR一覧
 
+- `2026-07-23-queue-delivery-and-db-fencing-boundary.md`
+  - queue delivery / ack / visibility / DLQとDB processing lease / attempt fencing / completion guardの責務境界
+  - 関連Issue: #109
+  - 詳細設計: `docs/reports/2026-07-23-queue-operations-visibility-dlq-backoff-design.md`
 - `2026-07-22-stale-running-lease-recovery.md`
   - stale `running` submissionのlease / heartbeat / attempt fencing / recovery方針
   - 関連Issue: #101

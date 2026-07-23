@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-07-23（Issue #105 stale running自動回収を実装中）
+最終更新: 2026-07-23（Issue #109 queue運用設計を実施中）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -12,39 +12,52 @@
 
 ## 進行中Issue
 
-### #105 lease期限切れrunning submissionのstale scannerと安全な自動回収を実装する
+### #109 現行HTTP queueと将来外部queueのvisibility timeout・DLQ・backoff運用方針を確定する
 - 優先度: P1
-- 状態: Open / In Progress
-- GitHub Issue: `https://github.com/mizzz-dev/ai-code-dojo/issues/105`
-- GitHub PR: `https://github.com/mizzz-dev/ai-code-dojo/pull/108`（Draft）
-- Linear mirror: `MIZ-34`（In Progress）
-- 目的: lease期限切れの `running` submissionをWorker起動時・定期scannerで検出し、新attemptとして安全に回収する。
+- 状態: Open / In Progress（docs-only）
+- GitHub Issue: `https://github.com/mizzz-ivr/ai-code-dojo/issues/109`
+- GitHub PR: `https://github.com/mizzz-ivr/ai-code-dojo/pull/110`（Draft）
+- 目的: 現行HTTP enqueueと将来外部queueのdelivery / ack / visibility timeout / retry / backoff / DLQ / replay / monitoring責務を分離し、後続実装Issueを安全な単位へ分割する。
 - 対象:
-  - `status = running` / completion guard未設定 / lease非NULL / lease期限切れの候補取得
-  - expected attempt / key / lease expiry付きrecovery transaction
-  - retry上限未満での `retry_pending -> queued(new attempt/key)`
-  - retry上限到達時のcompletion guard付き `infra_failed` 終端化
-  - Worker起動時・periodic scanner
-  - feature flag / interval / batch size / concurrency設定
-  - recovery後の再投入失敗時にIssue #106のqueued attempt専用終端化経路を利用
-  - unit / integration test
-  - current-status / active-issues / architecture / runbook / logs / ai-prompts / handoff
+  - 現行HTTP enqueueの障害モード・復旧経路
+  - queue message contract
+  - at-least-once delivery / ack / nack / redelivery
+  - visibility timeoutとDB processing leaseの境界
+  - transport retryとgrading attempt retryの分離
+  - backoff / jitter / max delivery count
+  - DLQ / replay / purge / retention / access control
+  - transactional outboxを含む段階移行
+  - observability / alert / runbook / test方針
+  - report / ADR / logs / ai-prompts / handoff
 - 非対象:
-  - Redis / BullMQ / Cloud Tasks等の外部queue導入
-  - visibility timeout / DLQ / backoff本格実装
-  - Runner / hidden tests / auth / admin / UI / deployment変更
-  - challengeの直接上書き
+  - 外部queue製品選定・導入実装
+  - API / Worker / Runnerコード変更
   - DB schema / migration / seed変更
+  - hidden tests / auth / admin / UI / deployment変更
+  - challenge直接上書き
 - 完了条件:
-  - leaseがNULLの `legacy_running` を自動回収しない。
-  - 複数scannerが同じ候補を見てもtransaction成功は1件だけになる。
-  - stale回収後はattemptとidempotency keyを更新し、旧attempt更新をno-opにする。
-  - retry上限到達時は `infra_failed` へ一意に終端化する。
-  - scanner失敗でWorkerのhealth endpointを停止しない。
-  - learner-safeへhidden tests詳細、attempt key、lease、worker情報を露出しない。
-  - lint / typecheck / unit / integration / schema validation / build / docs validationを通過する。
+  - queueはdelivery availability、DB lease / attempt fencing / completion guardはcorrectnessを担う方針を確定する。
+  - message / DLQ / logsへ提出コード、hidden tests、secretを含めない。
+  - transport retryではattemptを増やさず、application retryだけがnew attemptを作る。
+  - ackをDB永続化または安全なno-op確認後に限定する。
+  - DLQとsubmission statusを分離する。
+  - rollout / rollbackと後続Issue分割を確定する。
+  - docs validationを通過する。
 
 ## Recently Completed
+
+### #105 / PR #108 （完了済み）
+- 優先度: P1
+- 状態: Closed / Merged / Completed
+- 完了日: 2026-07-23
+- GitHub Issue: `https://github.com/mizzz-ivr/ai-code-dojo/issues/105`
+- GitHub PR: `https://github.com/mizzz-ivr/ai-code-dojo/pull/108`
+- Linear mirror: `MIZ-34`（Doneへ同期予定）
+- 関連資料:
+  - `docs/logs/2026-07-23-issue-105-stale-running-recovery-scanner.md`
+  - `docs/ai-prompts/2026-07-23-issue-105-stale-running-recovery-scanner-codex.md`
+  - `docs/handoff/2026-07-23-issue-105-stale-running-recovery-scanner-handoff.md`
+- 反映内容: lease期限切れrunningだけをexpected attempt / key / lease expiry付きtransactionでnew attemptへ回収し、startup / periodic scanner、retry上限判定、再投入失敗終端化を実装した。
 
 ### #106 / PR #107 （完了済み）
 - 優先度: P1
@@ -184,15 +197,19 @@
 
 ## Next Issue Candidates
 
-1. queue運用改善Issue（P1）
-   - 優先理由: visibility timeout / DLQ / backoffを現行HTTP queueと将来外部queueの責務に分けて整理するため。
-2. 監査ログ整備Issue（P2）
-   - 優先理由: completion guard、heartbeat、retry・recovery判断を必要最小限の監査情報として可視化するため。
-3. SQLiteから将来RDB / 外部queueへの移行計画Issue（P2）
-   - 優先理由: 現在のSQLite lease・transaction境界を将来構成へ安全に移行するため。
+1. queue port / message contract / HTTP adapter整理Issue（P1）
+   - 優先理由: 現行挙動を変えずにproducer / consumer contractとadapter境界を作るため。
+2. queue transport observability Issue（P1）
+   - 優先理由: enqueue / delivery / claim / retry / DLQ相当の状態を監視可能にするため。
+3. application retry backoff seam Issue（P1）
+   - 優先理由: immediate retryを設定可能なexponential backoff + jitterへ段階移行するため。
+4. external queue / transactional outbox PoC Issue（P2）
+   - 優先理由: 製品選定・dual-write対策・visibility / ack / DLQ contractを非本番で検証するため。
+5. DLQ ops / replay / purge Issue（P2）
+   - 優先理由: ops権限・監査・retentionを含む運用導線を整備するため。
 
 ## Branch Cleanup
 
-- PR #107のhead branch `fix/finalize-queued-retry-enqueue-failure` の削除状態はGitHub UIで確認する。
-- Issue #105のhead branchは `feat/stale-running-recovery-scanner`。
-- PR #108 merge後にIssue #105のhead branchを削除する。
+- PR #108のhead branch `feat/stale-running-recovery-scanner` はbranch検索で見つからず、削除済み相当。
+- Issue #109のhead branchは `docs/queue-operations-design`。
+- PR #110 merge後にIssue #109のhead branchを削除する。
