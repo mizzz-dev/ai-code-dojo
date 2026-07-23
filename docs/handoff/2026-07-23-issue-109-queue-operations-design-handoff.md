@@ -10,8 +10,11 @@
 - GitHub Issue #105: Closed / Completed
 - GitHub PR #108: Merged
 - GitHub Issue #109: Open / In Progress
-- GitHub PR #110: Draft / CI Success
+- GitHub PR #110: Ready for review / Mergeable
 - Branch: `docs/queue-operations-design`
+- Linear MIZ-34: Done
+- Linear Issue #109 mirror: workspace無料Issue上限により未作成
+- Notion: `https://app.notion.com/p/3a67322f39fa81c0bd11c9965981d005`
 
 ## Repository Rename
 
@@ -123,7 +126,7 @@
 
 ## Test Results
 
-PR #110 headで以下を確認済み。
+PR #110のdocs反映済みheadで以下を確認済み。
 
 - docs validation: Success
 - lint: Success
@@ -132,6 +135,8 @@ PR #110 headで以下を確認済み。
 - integration test: Success
 - schema validation: Success
 - build: Success
+
+Linear / Notion同期結果を反映した最終headでも再確認すること。
 
 ## Review Focus
 
@@ -154,15 +159,22 @@ PR #110 headで以下を確認済み。
 - DLQ内部情報長期保存
 - HTTP / external queue併存時の二重配送
 - stale scannerとqueue redeliveryの同時発生
+- Linear mirrorがないため、GitHub IssueとRepository docsが唯一の進捗正本となる
+
+## External Sync
+
+- Linear MIZ-34をIssue #105完了に合わせてDoneへ更新済み。
+- Issue #109の新規Linear mirror作成は無料Issue上限で失敗した。
+- NotionにIssue #109の設計進捗ページを作成済み。
+- Linear上限解消後にmirrorが必要な場合はGitHub Issue #109 / PR #110を参照して作成する。
 
 ## Remaining Tasks
 
-1. PR #110本文へ最終CI結果を反映する。
-2. PR #110をReady for reviewへ変更する。
-3. Linear / Notionを同期する。
-4. PR merge後にIssue #109 / Linearを完了へ同期する。
-5. merge後にbranch cleanupを確認する。
-6. next P1-1 Issueを作成する。
+1. 最終headのdocs validation / app-qualityを確認する。
+2. PR #110をレビュー・mergeする。
+3. merge後にIssue #109をClosedへ同期する。
+4. merge後にbranch cleanupを確認する。
+5. next P1-1 Issueを作成する。
 
 ## Handoff Notes
 
