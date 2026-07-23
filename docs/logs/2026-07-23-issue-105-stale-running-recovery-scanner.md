@@ -12,6 +12,7 @@ lease期限切れの `running` submissionをWorker起動時・定期実行で検
 - PR URL: `https://github.com/mizzz-dev/ai-code-dojo/pull/108`
 - Branch: `feat/stale-running-recovery-scanner`
 - Related merged PR: #107
+- State: 実装・正本docs・全CI完了、レビュー待ち
 
 ## Completed Tasks
 
@@ -27,6 +28,8 @@ lease期限切れの `running` submissionをWorker起動時・定期実行で検
 - unit / integration testを追加した。
 - current-status / active-issues / system-overview / runbookを更新した。
 - Linear MIZ-34をIn Progressへ更新し、PR #108を連携した。
+- NotionへIssue #105の実装進捗と品質ゲートを記録した。
+- docs validationを含む全CI品質ゲートの成功を確認した。
 
 ## Repository Findings
 
@@ -80,7 +83,8 @@ lease期限切れの `running` submissionをWorker起動時・定期実行で検
 修正:
 - `BEGIN IMMEDIATE` / `COMMIT` / `ROLLBACK` に置き換えた。
 
-修正後のコードheadでは以下を確認した。
+最終headで以下を確認した。
+- docs validation: Success
 - lint: Success
 - typecheck: Success
 - unit test: Success
@@ -88,13 +92,10 @@ lease期限切れの `running` submissionをWorker起動時・定期実行で検
 - schema validation: Success
 - build: Success
 
-最終docs反映後にdocs validationを含む全品質ゲートを再確認する。
-
 ## Remaining Tasks
 
-- 最終headのdocs validation / app-qualityを確認する。
-- PR #108本文へ最終CI結果を反映する。
 - PR #108をReady for reviewへ変更する。
+- PR #108のレビュー指摘へ対応する。
 - PR #108 merge後にIssue #105とMIZ-34を完了へ同期する。
 - merge後にbranch cleanupを確認する。
 
