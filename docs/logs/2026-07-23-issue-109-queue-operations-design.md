@@ -14,6 +14,7 @@ PR #108 / Issue #105のmerge後処理を確認し、次のP1として現行HTTP 
 - PR URL: `https://github.com/mizzz-ivr/ai-code-dojo/pull/110`
 - Branch: `docs/queue-operations-design`
 - Repository canonical name: `mizzz-ivr/ai-code-dojo`
+- Notion: `https://app.notion.com/p/3a67322f39fa81c0bd11c9965981d005`
 
 ## Completed Tasks
 
@@ -28,7 +29,10 @@ PR #108 / Issue #105のmerge後処理を確認し、次のP1として現行HTTP 
 - transactional outboxを将来推奨構成として整理した。
 - 現行HTTP改善と外部queue移行を段階Issueへ分割した。
 - current-status / active-issues / system-overview / runbook / ADR index / reports indexを更新した。
-- PR #110を作成した。
+- PR #110を作成し、Ready for reviewへ変更した。
+- Linear MIZ-34をIssue #105完了に合わせてDoneへ更新した。
+- Issue #109のLinear新規mirror作成を試行したが、workspace無料Issue上限により作成できなかった。
+- NotionにIssue #109の設計進捗ページを作成した。
 
 ## Repository Findings
 
@@ -78,10 +82,11 @@ PR #108 / Issue #105のmerge後処理を確認し、次のP1として現行HTTP 
 - DLQの内部情報長期保存
 - HTTP / external queue併存期間の二重配送
 - stale scannerとqueue redeliveryの同時発生
+- Linear新規mirrorを作成できず、GitHub IssueとRepository docsへの依存が高い
 
 ## Test Results
 
-PR #110 headで以下を確認した。
+PR #110のdocs反映済みheadで以下を確認した。
 
 - docs validation: Success
 - lint: Success
@@ -91,16 +96,17 @@ PR #110 headで以下を確認した。
 - schema validation: Success
 - build: Success
 
+Linear / Notion同期結果を反映した最終headでも同じ品質ゲートを再確認する。
+
 コード・schema変更は行っていないが、既存app-qualityを通してdocs変更が既存品質ゲートを壊していないことを確認した。
 
 ## Remaining Tasks
 
-- PR #110本文へ最終CI結果を反映する。
-- PR #110をReady for reviewへ変更する。
-- Linear / Notionを同期する。
-- PR merge後にIssue #109をClosed、LinearをDoneへ同期する。
+- 最終headのdocs validation / app-qualityを確認する。
+- PR #110 merge後にIssue #109をClosedへ同期する。
 - merge後にbranch cleanupを確認する。
 - 後続P1-1 queue port / message contract / HTTP adapter Issueを作成する。
+- Linear workspaceのIssue上限解消後、必要ならIssue #109のmirrorを作成する。
 
 ## Suggested Next Actions
 
