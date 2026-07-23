@@ -7,13 +7,15 @@ lease期限切れの `running` submissionをWorker起動時・定期実行で検
 ## Current State
 
 - GitHub Issue #105: Open / In Progress
-- GitHub PR #108: Draft
+- GitHub PR #108: Open / Ready for review / Mergeable
 - Branch: `feat/stale-running-recovery-scanner`
+- 実装・正本docs・全CI品質ゲート: 完了
 - Related completed Issue / PR:
   - Issue #106 / PR #107
   - Issue #102 / PR #104
   - Issue #101 / PR #103
 - Linear MIZ-34: In Progress
+- Notion: Issue #105実装進捗ページ作成済み
 
 ## Implemented Changes
 
@@ -113,15 +115,14 @@ lease期限切れの `running` submissionをWorker起動時・定期実行で検
 修正:
 - `BEGIN IMMEDIATE` / `COMMIT` / `ROLLBACK` へ置き換えた。
 
-修正後のコードhead:
+最終headで確認済み:
+- docs validation: Success
 - lint: Success
 - typecheck: Success
 - unit: Success
 - integration: Success
 - schema validation: Success
 - build: Success
-
-最終docs反映後にdocs validationを含む全CIを確認すること。
 
 ## Key Decisions
 
@@ -156,12 +157,11 @@ lease期限切れの `running` submissionをWorker起動時・定期実行で検
 
 ## Remaining Tasks
 
-1. 最終headのdocs validation / app-qualityを確認する。
-2. PR #108本文へ最終CI結果を反映する。
-3. PR #108をReady for reviewへ変更する。
-4. PRレビュー指摘へ対応する。
-5. merge後にIssue #105 / Linear MIZ-34を完了へ同期する。
-6. merge後にbranch cleanupを確認する。
+1. PR #108のレビュー指摘へ対応する。
+2. PR #108をmergeする。
+3. merge後にIssue #105 / Linear MIZ-34を完了へ同期する。
+4. merge後にbranch cleanupを確認する。
+5. 次のP1としてqueue運用改善の設計へ進む。
 
 ## Handoff Notes
 
