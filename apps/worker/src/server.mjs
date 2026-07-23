@@ -13,7 +13,9 @@ import {
 } from '../../api/src/repositories/submission-repository.mjs';
 import { enqueueSubmissionAttempt } from '../../api/src/services/submission-service.mjs';
 import { getProcessingLeaseConfig } from './config/processing-lease-config.mjs';
+import { getStaleRecoveryConfig } from './config/stale-recovery-config.mjs';
 import { runJavaScriptChallenge, runJavaScriptChallengeViaIsolatedJob } from './services/js-runner.mjs';
+import { startStaleRecoveryScanner } from './services/stale-recovery-scanner.mjs';
 
 const port = Number(process.env.WORKER_PORT ?? 8081);
 const useIsolationPoc = process.env.RUNNER_ISOLATION_POC === '1';
@@ -21,6 +23,9 @@ const isProduction = process.env.NODE_ENV === 'production';
 const maxInfraRetryAttempts = Number(process.env.WORKER_MAX_INFRA_RETRY_ATTEMPTS ?? 2);
 const retryEnqueueBaseUrl = process.env.WORKER_RETRY_ENQUEUE_BASE_URL ?? `http://localhost:${port}`;
 const processingLeaseConfig = getProcessingLeaseConfig(process.env);
+const staleRecoveryConfig = getStaleRecoveryConfig(process.env, {
+  heartbeatEnabled: processingLeaseConfig.enabled
+});
 
 if (useIsolationPoc && isProduction) {
   throw new Error('RUNNER_ISOLATION_POC must not be enabled in production.');
@@ -262,4 +267,11 @@ server.listen(port, () => {
     .catch((error) => {
       console.error('queued submission recovery failed', error);
     });
+
+  startStaleRecoveryScanner({
+    config: staleRecoveryConfig,
+    maxInfraRetryAttempts,
+    retryEnqueueBaseUrl,
+    logger: console
+  });
 });
