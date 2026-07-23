@@ -233,6 +233,46 @@ export const updateSubmissionForAttempt = async (
   return getSubmission(id);
 };
 
+export const finalizeQueuedAttemptAsInfraFailed = async (
+  id,
+  result,
+  { gradingAttempt, attemptIdempotencyKey, timestamp = now() }
+) => {
+  if (!result || result.status !== 'infra_failed') {
+    throw new TypeError('result.status must be infra_failed.');
+  }
+
+  const write = getDb().prepare(`
+    UPDATE submissions
+    SET status = 'infra_failed',
+        updated_at = ?,
+        result_json = ?,
+        completion_guard_at = ?,
+        processing_claimed_at = NULL,
+        processing_heartbeat_at = NULL,
+        processing_lease_expires_at = NULL
+    WHERE id = ?
+      AND status = 'queued'
+      AND completion_guard_at IS NULL
+      AND grading_attempt = ?
+      AND (
+        attempt_idempotency_key = ?
+        OR (attempt_idempotency_key IS NULL AND ? IS NULL)
+      )
+  `).run(
+    timestamp,
+    JSON.stringify(result),
+    timestamp,
+    id,
+    gradingAttempt,
+    attemptIdempotencyKey,
+    attemptIdempotencyKey
+  );
+
+  if (write.changes === 0) return null;
+  return getSubmission(id);
+};
+
 export const updateSubmission = async (id, patch) => {
   const current = await getSubmission(id);
   if (!current) return null;
