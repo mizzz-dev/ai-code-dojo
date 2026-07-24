@@ -14,9 +14,9 @@
 
 ### #111 queue message contractとHTTP adapterを分離して現行enqueue挙動を固定する
 - 優先度: P1
-- 状態: Open / In Progress
+- 状態: Open / Review
 - GitHub Issue: `https://github.com/mizzz-ivr/ai-code-dojo/issues/111`
-- GitHub PR: `https://github.com/mizzz-ivr/ai-code-dojo/pull/112`（Draft）
+- GitHub PR: `https://github.com/mizzz-ivr/ai-code-dojo/pull/112`（Ready for review）
 - 作業branch: `refactor/queue-contract-http-adapter`
 - 目的: queue message contract、producer port、HTTP adapterを分離し、現行HTTP enqueueの意味をcontract testで固定する。
 - 対象:
