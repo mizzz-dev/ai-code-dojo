@@ -13,6 +13,8 @@ Issue #111 / PR #112のmerge後処理を確認し、次のP1として現行HTTP 
 - Current PR: #114
 - PR URL: `https://github.com/mizzz-ivr/ai-code-dojo/pull/114`
 - Branch: `feat/queue-transport-observability`
+- PR状態: Ready for review / Mergeable
+- Notion: `https://app.notion.com/p/3a77322f39fa810faa80f87e6a3c6cd3`
 
 ## Completed Tasks
 
@@ -31,7 +33,10 @@ Issue #111 / PR #112のmerge後処理を確認し、次のP1として現行HTTP 
 - logger / HTTP producer / Worker integration testを追加・更新した。
 - current-status / active-issues / system-overviewを更新した。
 - queue observability専用runbookを追加した。
-- Draft PR #114を作成した。
+- AIプロンプトログ / handoffを追加した。
+- PR #114本文を完成させ、Ready for reviewへ変更した。
+- NotionにIssue #113実装進捗ページを作成した。
+- Linear新規mirror作成を試行したが、workspace無料Issue上限により作成できなかった。
 
 ## Repository Findings
 
@@ -75,11 +80,13 @@ Issue #111 / PR #112のmerge後処理を確認し、次のP1として現行HTTP 
 - empty periodic scanを出さないため、scan livenessはhealth / startup eventと併用が必要。
 - 現時点ではmetrics backend / dashboard / alert通知が未実装。
 - event loggerの出力先障害は業務処理へ伝播しないため、別途ログ収集基盤のhealth監視が必要。
+- Linear mirrorがないため、GitHub IssueとRepository docsへの依存が高い。
 
 ## Test Results
 
-コード変更時点の初回app-qualityは成功した。
+PR #114のdocs・runbook・管理状態反映済みheadで以下がすべて成功した。
 
+- docs validation: Success
 - lint: Success
 - typecheck: Success
 - unit test: Success
@@ -87,16 +94,23 @@ Issue #111 / PR #112のmerge後処理を確認し、次のP1として現行HTTP 
 - schema validation: Success
 - build: Success
 
-正本docs・runbook・ログ反映後の最終headでdocs validationとapp-qualityを再確認する。
+確認内容:
+
+- allowlist fieldだけのJSON Lines出力
+- unknown event / field非出力
+- code / hidden tests / secret / attempt key / raw error message非出力
+- logger sink failure非伝播
+- enqueue success / non-2xx / network error / contract rejection分類
+- Worker delivery accepted / rejected
+- missing submissionのclaim no-op
+- 既存submission / retry / stale recovery / learner-safe境界の回帰
 
 ## Remaining Tasks
 
-- AIプロンプトログ / handoffを追加する。
-- final headのdocs validation / app-qualityを確認する。
-- PR #114本文をテスト結果込みで確定する。
-- PR #114をReady for reviewへ変更する。
-- GitHub Issue #113へ実装・テスト結果をコメントする。
-- Linear / Notion同期可否を確認する。
+- 最終管理同期コミット後のdocs validation / app-qualityを確認する。
+- Issue #113へ実装・テスト結果をコメントする。
+- PR #114 merge後にIssue #113をCompletedへ同期する。
+- merge後にbranch cleanupを確認する。
 
 ## Suggested Next Actions
 
