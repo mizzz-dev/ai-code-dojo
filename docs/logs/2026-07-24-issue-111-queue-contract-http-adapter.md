@@ -13,6 +13,8 @@ Issue #109 / PR #110のmerge後処理を確認し、次のP1としてqueue messa
 - Current PR: #112
 - PR URL: `https://github.com/mizzz-ivr/ai-code-dojo/pull/112`
 - Branch: `refactor/queue-contract-http-adapter`
+- Notion: `https://app.notion.com/p/3a77322f39fa815caec7c6a4f8cec5d2`
+- Linear: workspace無料Issue上限のため新規mirror作成不可
 
 ## Completed Tasks
 
@@ -26,8 +28,11 @@ Issue #109 / PR #110のmerge後処理を確認し、次のP1としてqueue messa
 - Worker `/jobs`で共通message contractを検証するよう変更した。
 - 不正JSON、不正version、未知fieldを400で拒否するよう変更した。
 - contract / HTTP adapter unit testとWorker integration contract testを追加した。
-- current-status / active-issuesをIssue #111へ同期した。
+- current-status / active-issues / system-overviewをIssue #111へ同期した。
+- logs / ai-prompts / handoffを追加した。
 - Draft PR #112を作成した。
+- NotionにIssue #111進捗ページを作成した。
+- Linear新規mirror作成を試行したが、workspace無料Issue上限により作成できなかった。
 
 ## Repository Findings
 
@@ -65,18 +70,34 @@ Issue #109 / PR #110のmerge後処理を確認し、次のP1としてqueue messa
 - strict unknown field validationにより、将来field追加時はschema versionまたはcontract更新が必要になる。
 - HTTP adapterはdurable delivery、ack、visibility timeout、DLQを提供しない。
 - correlation IDの発行・伝播はoptional contractのみで、本Issueでは運用実装しない。
+- Linear mirrorを作れず、GitHub Issue / PRとRepository docsを正本として運用する必要がある。
 
 ## Test Results
 
-- 最終headのCI確認後に確定する。
+PR #112の実装・docs反映済みheadで以下を確認した。
+
+- docs validation: Success
+- lint: Success
+- typecheck: Success
+- unit test: Success
+- integration test: Success
+- schema validation: Success
+- build: Success
+
+追加確認:
+- builderがversion付き最小messageだけを生成する。
+- code / hidden tests / secretをmessageへ含めない。
+- invalid version / missing field / invalid type / unknown fieldを拒否する。
+- HTTP adapterが2xx成功、非2xx・network error失敗を返す。
+- Worker `/jobs`がvalid messageを202、不正JSON・不正contractを400で返す。
+- 既存API提出、retry、stale recovery、learner-safe境界のintegrationが成功する。
 
 ## Remaining Tasks
 
-- system-overviewへ実装済みqueue contract境界を反映する。
-- 最終headのlint / typecheck / unit / integration / schema validation / build / docs validationを確認する。
 - PR #112本文をテスト結果込みで確定する。
 - PR #112をReady for reviewへ変更する。
-- Linear / Notionの同期可否を確認する。
+- GitHub Issue #111へ実装・テスト結果をコメントする。
+- merge後にIssue #111 / branch cleanupを同期する。
 
 ## Suggested Next Actions
 
