@@ -1,4 +1,7 @@
+import { enqueueSubmissionAttempt } from '../../../../packages/queue/src/submission-queue.mjs';
 import { createSubmission, getSubmission } from '../repositories/submission-repository.mjs';
+
+export { enqueueSubmissionAttempt };
 
 export const validateSubmissionInput = (input) => {
   if (!input || typeof input !== 'object') return false;
@@ -6,26 +9,6 @@ export const validateSubmissionInput = (input) => {
   if (typeof input.language !== 'string' || input.language.length === 0) return false;
   if (typeof input.code !== 'string' || input.code.length === 0) return false;
   return true;
-};
-
-const getDefaultWorkerUrl = () => process.env.RUNNER_API_BASE_URL ?? 'http://localhost:8081';
-
-export const enqueueSubmissionAttempt = async ({ submissionId, gradingAttempt, attemptIdempotencyKey, runnerApiBaseUrl = getDefaultWorkerUrl() }) => {
-  try {
-    const response = await fetch(`${runnerApiBaseUrl}/jobs`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({
-        submissionId,
-        gradingAttempt,
-        attemptIdempotencyKey
-      })
-    });
-
-    return response.ok;
-  } catch {
-    return false;
-  }
 };
 
 export const createSubmissionAndEnqueue = async (body) => {
