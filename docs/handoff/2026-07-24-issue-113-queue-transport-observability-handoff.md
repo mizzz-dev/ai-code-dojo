@@ -9,8 +9,10 @@
 - Issue: #113
 - PR: #114
 - Branch: `feat/queue-transport-observability`
-- PR状態: Draft
-- CI状態: docs反映後の最終head確認中
+- PR状態: Ready for review / Mergeable
+- CI状態: docs validation / lint / typecheck / unit / integration / schema validation / buildがSuccess
+- Notion: `https://app.notion.com/p/3a77322f39fa810faa80f87e6a3c6cd3`
+- Linear: workspace無料Issue上限により新規mirrorを作成できず、GitHubとRepository docsを正本とする。
 
 ## Implemented
 
@@ -32,6 +34,8 @@
 - current-status / active-issues / system-overview更新
 - queue observability専用runbook
 - 作業ログ / AIプロンプトログ / handoff
+- PR #114完成版本文・Ready化
+- Notion進捗同期
 
 ## Event Security Boundary
 
@@ -67,6 +71,29 @@
 - DB schema / migration / seedを変更しない。
 - external queue / backoff / DLQ / metrics backendを混在させない。
 
+## Test Results
+
+最終確認済み:
+
+- docs validation: Success
+- lint: Success
+- typecheck: Success
+- unit test: Success
+- integration test: Success
+- schema validation: Success
+- build: Success
+
+主要確認:
+
+- allowlist fieldだけをJSON Linesへ出力する。
+- unknown event / fieldを出力しない。
+- code / hidden tests / secret / attempt key / raw error messageを出力しない。
+- logger sink failureを業務処理へ伝播しない。
+- HTTP 2xx / 非2xx / network error / contract rejectionを分類する。
+- Worker delivery accepted / rejectedを記録する。
+- missing submissionをclaim no-opとして記録する。
+- 既存retry / stale recovery / learner-safe境界を維持する。
+
 ## Review Focus
 
 - event nameがstableで過不足ないか。
@@ -78,16 +105,15 @@
 - retry / stale recoveryでattempt keyをログへ出していないか。
 - logger sink failureが業務処理へ伝播しないか。
 - learner-safeレスポンスに変更がないか。
+- event volume / retention / internal log access controlが妥当か。
 
 ## Remaining Tasks
 
-1. 最終headのdocs validation / app-qualityを確認する。
-2. 作業ログ / handoffへ最終CI結果を確定する。
-3. PR #114本文を完成させる。
-4. PR #114をReady for reviewへ変更する。
-5. Issue #113へ実装・テスト結果をコメントする。
-6. Linear / Notion同期可否を確認する。
-7. merge後にbranch cleanupを確認する。
+1. 最終管理同期コミット後のdocs validation / app-qualityを確認する。
+2. Issue #113へ実装・テスト結果をコメントする。
+3. PR #114をレビュー・mergeする。
+4. merge後にIssue #113をCompletedへ同期する。
+5. merge後にbranch cleanupを確認する。
 
 ## Next Recommended Issue
 
