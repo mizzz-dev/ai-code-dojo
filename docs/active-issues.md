@@ -1,6 +1,6 @@
 # active-issues（正本）
 
-最終更新: 2026-07-24（Issue #113 queue transport observabilityを実装中）
+最終更新: 2026-07-24（Issue #113 queue transport observabilityをレビュー中）
 
 ## この文書の目的
 進行中/未解決課題を、優先順位と依存関係付きで管理する。
@@ -14,9 +14,9 @@
 
 ### #113 queue transportの構造化イベントログと監視契約を実装する
 - 優先度: P1
-- 状態: Open / In Progress
+- 状態: Open / Review
 - GitHub Issue: `https://github.com/mizzz-ivr/ai-code-dojo/issues/113`
-- GitHub PR: `https://github.com/mizzz-ivr/ai-code-dojo/pull/114`（Draft）
+- GitHub PR: `https://github.com/mizzz-ivr/ai-code-dojo/pull/114`（Ready for review）
 - 作業branch: `feat/queue-transport-observability`
 - 目的: 現行HTTP queueのenqueue / delivery / claim / retry / stale recoveryを、機微情報を含めない安定した構造化eventとして観測可能にする。
 - 対象:
