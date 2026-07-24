@@ -1,6 +1,7 @@
 import http from 'node:http';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { parseSubmissionQueueMessage } from '../../../packages/queue/src/message-contract.mjs';
 import { getChallengeBasePath } from '../../api/src/repositories/challenge-repository.mjs';
 import {
   claimSubmissionForProcessing,
@@ -239,20 +240,36 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (req.method === 'POST' && url.pathname === '/jobs') {
-    const body = await parseBody(req);
-    if (!body?.submissionId) {
-      return sendJson(res, 400, { error: 'submissionId is required' });
+    let body;
+    try {
+      body = await parseBody(req);
+    } catch {
+      return sendJson(res, 400, { error: 'invalid queue message', code: 'invalid_json' });
     }
 
+    const parsed = parseSubmissionQueueMessage(body);
+    if (!parsed.success) {
+      return sendJson(res, 400, {
+        error: 'invalid queue message',
+        code: parsed.error.code,
+        field: parsed.error.field
+      });
+    }
+
+    const message = parsed.data;
     setImmediate(() => {
       processSubmission({
-        submissionId: body.submissionId,
-        gradingAttempt: body.gradingAttempt,
-        attemptIdempotencyKey: body.attemptIdempotencyKey
+        submissionId: message.submissionId,
+        gradingAttempt: message.gradingAttempt,
+        attemptIdempotencyKey: message.attemptIdempotencyKey
       });
     });
 
-    return sendJson(res, 202, { accepted: true, submissionId: body.submissionId, gradingAttempt: body.gradingAttempt });
+    return sendJson(res, 202, {
+      accepted: true,
+      submissionId: message.submissionId,
+      gradingAttempt: message.gradingAttempt
+    });
   }
 
   return sendJson(res, 404, { error: 'not found' });
